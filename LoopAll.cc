@@ -212,7 +212,7 @@ void LoopAll::MergeContainers(){
   // Loop Over the files and get the relevant pieces to Merge:
   for (;it!=files.end()
 	 ;it_file++,it++){
- 
+    
 	  *it_file = TFile::Open((*it).c_str());
     (*it_file)->cd();
     std::cout << "Combining Current File " << i << " / " << numberOfFiles << " - " << (*it) << std::endl;
@@ -573,6 +573,9 @@ void LoopAll::Init(Int_t typerunpass, TTree *tree) {
   }
   SetBranchAddresses(inputBranchNames);
   
+  el_ind=-1;
+  mu_ind=-1;
+
   Notify();
 }
 
@@ -622,7 +625,9 @@ void LoopAll::Loop(Int_t a) {
   Int_t nentries = 0;
   if(fChain) 
     nentries = Int_t(fChain->GetEntriesFast());
-  
+  Entries_=nentries;
+
+
   Int_t nbytes = 0, nb = 0;
 
   outputEvents=0;

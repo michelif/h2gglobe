@@ -142,6 +142,17 @@ class LoopAll {
 
   TH1D  * pileup;
 
+  int isLep_mu;
+  int isLep_ele;
+
+  int el_ind;
+  int mu_ind;
+
+  float drLepPho;
+  float drGsf;
+
+  int diphoton_id_lep;
+
   TFile * outputFile;
   TString outputFileName;
   TString histFileName;
@@ -161,6 +172,11 @@ class LoopAll {
   Int_t        current_sample_index; //current file
   // global parameters
   Int_t tot_events, sel_events, type, version, reductions;
+  Int_t Entries_;
+  bool createCS_;
+
+
+  float diPhotonBDTOutput;
 
   std::vector<std::string>  globalCountersNames; 
   std::vector<int> globalCounters; 
@@ -563,6 +579,18 @@ int DiphotonCiCSelection( phoCiCIDLevel LEADCUTLEVEL = phoLOOSE,
                           bool split=false, int fixedvtx=-1, std::vector<bool> veto_indices=std::vector<bool>(false),
                           std::vector<int> cutsbycat=std::vector<int>(0));
 
+int DiphotonCiCSelectionEleVeto( phoCiCIDLevel LEADCUTLEVEL = phoLOOSE,
+                                  phoCiCIDLevel SUBLEADCUTLEVEL = phoLOOSE,
+                                  Float_t leadPtMin = 30,
+                                  Float_t subleadPtMin = 20,
+                                  int ncategories=6,
+                                  bool applyPtoverM=false,
+                                  float *pho_energy_array=0,
+                                  bool split=false, int fixedvtx=-1, std::vector<bool> veto_indices=std::vector<bool>(false),
+                                  bool doApplyEleVeto=false,std::vector<int> cutsbycat=std::vector<int>(0));
+
+
+
 int DiphotonMITPreSelection(Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCut, bool applyPtoverM, float *pho_energy_array=0, int fixedvtx=-1, bool split=false, bool kinonly=false, std::vector<bool> veto_indices=std::vector<bool>(false));
 int DiphotonMITPreSelection2011(Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCut, bool applyPtoverM, float *pho_energy_array=0, bool kinonly=false);
 
@@ -587,6 +615,7 @@ int   PhotonCiCSelectionLevel( int photon_index, int vertex_index, std::vector<s
 
 bool   PhotonMITPreSelection( int photon_index, int vertex_index,float *pho_energy_array=0);
 bool   PhotonMITPreSelection2011( int photon_index, int vertex_index,float *pho_energy_array=0);
+bool   PhotonMITPreSelectionEleVeto( int photon_index, int vertex_index, float *pho_energy_array, int applyElectronVeto );
 
 // Functions to calculate variables used in CiC selection
 Float_t DeltaRToTrack(Int_t photon_ind=-1, Int_t vtxind=-1, Float_t PtMin=1., Float_t dzmax=0.2, Float_t dxymax=0.1, int maxlosthits=0);
@@ -1191,6 +1220,11 @@ void doJetMatching(TClonesArray & reco, TClonesArray & gen, Bool_t * match_flag,
 		   Float_t * match_pt, Float_t * match_dr, Float_t maxDr=0.4 );
 
 std::pair<int, int> Select2HighestPtJets(TLorentzVector& leadpho, TLorentzVector& subleadpho, Bool_t * jetid_flags=0);
+
+vector<int> SelectJets(const TLorentzVector& leadpho, const TLorentzVector& subleadpho, Bool_t * jetid_flags=0);
+vector<int> SelectJets_looser(LoopAll& l, int diphoton_id,const TLorentzVector& leadpho, const TLorentzVector& subleadpho, Bool_t * jetid_flags=0);
+std::pair<int, int> SelectBtaggedAndHighestPtJets(LoopAll& l,int diphoton_id,const TLorentzVector& leadpho,const TLorentzVector& subleadpho, Bool_t * jetid_flags=0);
+
 int RescaleJetEnergy(bool force=false);
 
 //Moriond2012
@@ -1200,7 +1234,9 @@ int MuonSelection2012(TLorentzVector& pho1, TLorentzVector& pho2, int vtxind);
 bool MuonPhotonCuts2012(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu);
 //HCP2012
 int MuonSelection2012B(float muptcut=20.);
+int GetNMuonsPassingSelection2012B(float muptcut,TLorentzVector& pho1, TLorentzVector& pho2,float deltaRcut);
 bool MuonPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu);
+bool MuonPhotonCuts2012B_2(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu,float deltaRcut);
 bool MuonLooseID2012(int indmu);
 bool MuonTightID2012(int indmu, int vtxind=-1);
 bool MuonIsolation2012(int indmu, float mupt, bool isTight=false);
@@ -1215,13 +1251,20 @@ bool ElectronLooseEGammaID(int electronindex, int vertexindex=-1);
 bool ElectronTightEGammaID(int electronindex, int vertexindex=-1);
 //HCP2012
 int ElectronSelectionMVA2012(float elptcut=20.);
+std::vector<int> GetIndexesElectronsPassingSelectionMVA2012(float elptcut=20.);
+int GetNelectronsPassingSelectionMVA2012(float elptcut,TLorentzVector& pho1, TLorentzVector& pho2,float deltaRPholep_cut);
 bool ElectronMVACuts(int el_ind, int vtx_ind=-1);
 bool ElectronPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector& ele, bool includeVHlepPlusMet=false);
+bool ElectronPhotonCuts2012B_2(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector& ele,float deltaRcut, bool doMinvCut=false);
 int FindElectronVertex(int el_ind);
 void PhotonsToVeto(TLorentzVector* veto_p4, float drtoveto, std::vector<bool>& vetos, bool drtotkveto);
+void PhotonsToVeto_2(TLorentzVector* veto_p4, float drtoveto,float drgsftoveto, std::vector<bool>& vetos, bool drtotkveto);
 
+int ElectronSelectionMVA2012_nocutOnMVA(float elptcut);
+bool ElectronMVACuts_nocutOnMVA(int el_ind, int vtx_ind);
 //HCP2012
 TLorentzVector METCorrection2012B(TLorentzVector lead_p4, TLorentzVector sublead_p4);
+TLorentzVector METCorrection2012B_new(TLorentzVector lead_p4, TLorentzVector sublead_p4);
 //bool METAnalysis2012B(float MET);
 bool METAnalysis2012B(TLorentzVector lead_p4, TLorentzVector sublead_p4, bool useUncor, bool doMETCleaning=true );
 bool METCleaning2012B(TLorentzVector& lead_p4, TLorentzVector& sublead_p4, TLorentzVector& myMet);

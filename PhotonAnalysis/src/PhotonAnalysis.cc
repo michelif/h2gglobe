@@ -1,5 +1,4 @@
 #include "../interface/PhotonAnalysis.h"
-#include "../interface/HelicityLikelihoodDiscriminant.h"
 #include "../interface/BTagWeight.h"
 
 

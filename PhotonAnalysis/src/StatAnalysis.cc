@@ -6,6 +6,8 @@
 #include <stdio.h>
 
 #define PADEBUG 0
+#define FMDEBUG 0
+#define FMDEBUG_1 0
 
 using namespace std;
 
@@ -31,8 +33,11 @@ StatAnalysis::StatAnalysis()  :
 
     nVBFCategories   = 0;
     nVHhadCategories = 0;
+    nVHhadBtagCategories = 0;
     nVHlepCategories = 0;
     nVHmetCategories = 0;
+    nTTHhadCategories = 0;
+    nTTHlepCategories = 0;
     nCosThetaCategories = 0;
     
     nVtxCategories = 0;
@@ -170,6 +175,10 @@ void StatAnalysis::Init(LoopAll& l)
     }
 
     nVHhadCategories = ((int)includeVHhad)*nVHhadEtaCategories;
+    nVHhadBtagCategories =((int)includeVHhadBtag);
+    nTTHhadCategories =((int)includeTTHhad);
+    nTTHlepCategories =((int)includeTTHlep);
+
     if(includeVHlep){
         nVHlepCategories = nElectronCategories + nMuonCategories;
     }
@@ -178,7 +187,8 @@ void StatAnalysis::Init(LoopAll& l)
     }
     nVHmetCategories = (int)includeVHmet;  //met at analysis step
 
-    nCategories_=(nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHlepCategories+nVHmetCategories);  //met at analysis step
+    nCategories_=(nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHlepCategories+nVHmetCategories+nVHhadBtagCategories+nTTHhadCategories+nTTHlepCategories);
+    //    nCategories_=(nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHlepCategories+nVHmetCategories);  //met at analysis step
 //    nCategories_=(nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHlepCategories);
     if (doSpinAnalysis) nCategories_*=nCosThetaCategories;
 
@@ -359,7 +369,9 @@ void StatAnalysis::Init(LoopAll& l)
 		    bkgPolOrderByCat.push_back(2);
 	        } else if(i<nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHlepCategories){
 		    bkgPolOrderByCat.push_back(1);
-	        }
+	        }else if(i<nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHhadBtagCategories+nVHlepCategories+nTTHhadCategories+nTTHlepCategories){
+		    bkgPolOrderByCat.push_back(3);
+		}
 	}
     }
     // build the model
@@ -437,6 +449,8 @@ void StatAnalysis::buildBkgModel(LoopAll& l, const std::string & postfix)
 
     l.rooContainer->AddRealVar("CMS_hgg_plaw0"+postfix,0.01,-10,10);
 
+    l.rooContainer->AddRealVar("CMS_hgg_exp0"+postfix,-1,-10,0);//exp model
+
     // prefix for models parameters
     std::map<int,std::string> parnames;
     parnames[1] = "modlin";
@@ -446,6 +460,7 @@ void StatAnalysis::buildBkgModel(LoopAll& l, const std::string & postfix)
     parnames[5] = "modpol5_";
     parnames[6] = "modpol6_";
     parnames[-1] = "plaw";
+    parnames[-10] = "exp";//exp model
 
     // map order to categories flags + parameters names
     std::map<int, std::pair<std::vector<int>, std::vector<std::string> > > catmodels;
@@ -466,13 +481,18 @@ void StatAnalysis::buildBkgModel(LoopAll& l, const std::string & postfix)
                     catpars.push_back( Form( "CMS_hgg_%s%d%s", parname.c_str(), iorder, +postfix.c_str() ) );
                 }
             } else {
-                if( catmodel != -1 ) {
-                    std::cout << "The only supported negative bkg poly order is -1, ie 1-parmeter power law" << std::endl;
+                if( catmodel != -1 && catmodel != -10 ) {
+                    std::cout << "The only supported negative bkg poly orders are -1 and -10, ie 1-parmeter power law -10 exponential" << std::endl;
                     assert( 0 );
                 }
-                catpars.push_back( Form( "CMS_hgg_%s%d%s", parname.c_str(), 0, +postfix.c_str() ) );
+		if(catmodel == -1 ){
+		    catpars.push_back( Form( "CMS_hgg_%s%d%s", parname.c_str(), 0, +postfix.c_str() ) );
+		}else if(catmodel == -10 ){
+                    catpars.push_back( Form( "CMS_hgg_%s%d%s", parname.c_str(), 0, +postfix.c_str() ) );
+                }
+
             }
-        } else if ( catmodel != -1 ) {
+        } else if ( catmodel != -1 && catmodel != -10) {
             assert( catflags.size() == nCategories_ && catpars.size() == catmodel );
         }
         // chose category order
@@ -482,18 +502,22 @@ void StatAnalysis::buildBkgModel(LoopAll& l, const std::string & postfix)
     // now loop over the models and allocate the pdfs
     /// for(size_t imodel=0; imodel<catmodels.size(); ++imodel ) {
     for(std::map<int, std::pair<std::vector<int>, std::vector<std::string> > >::iterator modit = catmodels.begin();
-    modit!=catmodels.end(); ++modit ) {
+	modit!=catmodels.end(); ++modit ) {
         std::vector<int> & catflags = modit->second.first;
         std::vector<std::string> & catpars = modit->second.second;
 
         if( modit->first > 0 ) {
             l.rooContainer->AddSpecificCategoryPdf(&catflags[0],"data_pol_model"+postfix,
-                "0","CMS_hgg_mass",catpars,70+catpars.size());
+						   "0","CMS_hgg_mass",catpars,70+catpars.size());
             // >= 71 means RooBernstein of order >= 1
-        } else {
+        } else if (modit->first == -1){
             l.rooContainer->AddSpecificCategoryPdf(&catflags[0],"data_pol_model"+postfix,
-                "0","CMS_hgg_mass",catpars,6);
+						   "0","CMS_hgg_mass",catpars,6);
             // 6 is power law
+        }else{
+            l.rooContainer->AddSpecificCategoryPdf(&catflags[0],"data_pol_model"+postfix,
+                                                   "0","CMS_hgg_mass",catpars,1);
+            // 1 is exp                                                                                                                                                         
         }
     }
 }

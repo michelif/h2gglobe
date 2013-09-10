@@ -1427,13 +1427,15 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
 	//if needed you can compute btag efficiency 
 	//	computeBtagEff(l);
 
-	bool isMC = l.itype[l.current]!=0;
+
 	if(includeTTHlep || includeVHhad){
+	    bool isMC = l.itype[l.current]!=0;
 	    if(isMC && applyBtagSF ){
-		if (category==9 ||category ==10)){
-		evweight*=BtagReweight(l,shiftBtagEffUp_bc,shiftBtagEffDown_bc,shiftBtagEffUp_l,shiftBtagEffDown_l,1);
-	    }else if (category == 11){
-		evweight*=BtagReweight(l,shiftBtagEffUp_bc,shiftBtagEffDown_bc,shiftBtagEffUp_l,shiftBtagEffDown_l,0);
+		if (category==9 ||category ==10){//tth categories
+		    evweight*=BtagReweight(l,shiftBtagEffUp_bc,shiftBtagEffDown_bc,shiftBtagEffUp_l,shiftBtagEffDown_l,1);
+		}else if (category == 11){//vh categories. loose wp for btag
+		    evweight*=BtagReweight(l,shiftBtagEffUp_bc,shiftBtagEffDown_bc,shiftBtagEffUp_l,shiftBtagEffDown_l,0);
+		}
 	    }
 	}
           return (category >= 0 && mass>=massMin && mass<=massMax);

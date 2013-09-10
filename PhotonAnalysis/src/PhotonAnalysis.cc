@@ -106,6 +106,7 @@ PhotonAnalysis::PhotonAnalysis()  :
     removeBtagtth=false;
     createCS=false;
 
+    optimizeMVA=false;
 
     doLooseLep=false;
     doDrGsfTrackCut=false;
@@ -1304,27 +1305,29 @@ void PhotonAnalysis::Init(LoopAll& l)
 
     // FIXME book of additional variables
 
-    // Initialize all MVA ---------------------------------------------------//
-    l.SetAllMVA();
-    // UCSD 
-    l.tmvaReaderID_UCSD->BookMVA("Gradient"      ,photonLevelMvaUCSD.c_str()  );
-    l.tmvaReader_dipho_UCSD->BookMVA("Gradient"  ,eventLevelMvaUCSD.c_str()   );
-    // New ID MVA 
-    if( photonLevelNewIDMVA_EB != "" && photonLevelNewIDMVA_EE != "" ) {
-	l.tmvaReaderID_Single_Barrel->BookMVA("AdaBoost",photonLevelNewIDMVA_EB.c_str());
-	l.tmvaReaderID_Single_Endcap->BookMVA("AdaBoost",photonLevelNewIDMVA_EE.c_str());
-    } else {
-	assert( dataIs2011 );
-    }
-    // MIT 
-    if( photonLevelMvaMIT_EB != "" && photonLevelMvaMIT_EE != "" ) {
-	l.tmvaReaderID_MIT_Barrel->BookMVA("AdaBoost",photonLevelMvaMIT_EB.c_str());
-	l.tmvaReaderID_MIT_Endcap->BookMVA("AdaBoost",photonLevelMvaMIT_EE.c_str());
-    } else {
-	assert( ! dataIs2011 );
-    }
-    l.tmvaReader_dipho_MIT->BookMVA("Gradient"   ,eventLevelMvaMIT.c_str()    );
+    if(optimizeMVA){
+	// Initialize all MVA ---------------------------------------------------//
+	l.SetAllMVA();
+	// UCSD 
+	l.tmvaReaderID_UCSD->BookMVA("Gradient"      ,photonLevelMvaUCSD.c_str()  );
+	l.tmvaReader_dipho_UCSD->BookMVA("Gradient"  ,eventLevelMvaUCSD.c_str()   );
+	// New ID MVA 
+	if( photonLevelNewIDMVA_EB != "" && photonLevelNewIDMVA_EE != "" ) {
+	    l.tmvaReaderID_Single_Barrel->BookMVA("AdaBoost",photonLevelNewIDMVA_EB.c_str());
+	    l.tmvaReaderID_Single_Endcap->BookMVA("AdaBoost",photonLevelNewIDMVA_EE.c_str());
+	} else {
+	    assert( dataIs2011 );
+	}
+	// MIT 
+	if( photonLevelMvaMIT_EB != "" && photonLevelMvaMIT_EE != "" ) {
+	    l.tmvaReaderID_MIT_Barrel->BookMVA("AdaBoost",photonLevelMvaMIT_EB.c_str());
+	    l.tmvaReaderID_MIT_Endcap->BookMVA("AdaBoost",photonLevelMvaMIT_EE.c_str());
+	} else {
+	    assert( ! dataIs2011 );
+	}
+	l.tmvaReader_dipho_MIT->BookMVA("Gradient"   ,eventLevelMvaMIT.c_str()    );
     // ----------------------------------------------------------------------//    
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -4245,15 +4248,8 @@ bool PhotonAnalysis::VHhadronicBtag2012(LoopAll& l, int diphotonVHhadBtag_id, fl
 	if(l.jet_algoPF1_csvBtag[ii]>0.679)njets_btagmedium++;
 
 
-    if(l.event==DEBUG_EVENT_NUMBER_3){
-	std::cout<<"in Vh btag"<<endl;
-	std::cout<<"------------------------DEBUGGING EVENT "<<l.event<<"------------------------"<<endl;
-	std::cout<<"pt: "<<p4_jet->Pt()<<std::endl;	   
-
-	    }
-
-
-		if(FMDEBUG)std::cout<<"pt: "<<p4_jet->Pt()<<" btag_loose "<<njets_btagloose<<" btag_medium "<<njets_btagmedium<<std::endl;
+	
+	if(FMDEBUG)std::cout<<"pt: "<<p4_jet->Pt()<<" btag_loose "<<njets_btagloose<<" btag_medium "<<njets_btagmedium<<std::endl;
 
     }
 
@@ -4281,12 +4277,6 @@ bool PhotonAnalysis::VHhadronicBtag2012(LoopAll& l, int diphotonVHhadBtag_id, fl
     bool hasPassedPhotonSelection= (lead_p4.Pt()>ptLeadTrig_thresh && sublead_p4.Pt()> ptSubleadTrig_thresh && lead_p4.Pt()> ptLead_thresh  &&  diphoton.Pt()>ptDiphot_thresh);
 
 
-    if(l.event==DEBUG_EVENT_NUMBER_3){
-	std::cout<<"------------------------DEBUGGING------------------------"<<endl;
-	std::cout<<"abs_cosThetaStar="<<abs_cosThetaStar<<" njets= "<<njets<<" nbtag loose="<<njets_btagloose<<" nbtag medium="<<njets_btagmedium
-		 <<std::endl<<" ptphot1/2="<<lead_p4.Pt()<<"/"<<sublead_p4.Pt()<<" ptgg="<<diphoton.Pt()<<std::endl
-		 <<" ptjet1="<<(*jet1).Pt()<<" ptjet2="<<(*jet2).Pt()<< " mjj"<<dijet.M()<<endl;
-    }
 
     if(hasPassedJetSelection && hasPassedPhotonSelection && hasPassedCosThetaSelection)tag=true;
 
@@ -4380,12 +4370,6 @@ bool PhotonAnalysis::TTHhadronicTag2012(LoopAll& l, int diphotonTTHhad_id, float
 	if(FMDEBUG)
 std::cout<<"pt: "<<p4_jet->Pt()<<" btag_loose "<<njets_btagloose<<" btag_medium "<<njets_btagmedium<<std::endl;
 
-    if(l.event==DEBUG_EVENT_NUMBER_4 ){
-	std::cout<<"in TTH HADRONIC"<<endl;
-	std::cout<<"------------------------DEBUGGING EVENT "<<l.event<<"------------------------"<<endl;
-	std::cout<<"pt: "<<p4_jet->Pt()<<std::endl;	   
-
-	    }
 
 
 
@@ -4410,13 +4394,6 @@ std::cout<<"pt: "<<p4_jet->Pt()<<" btag_loose "<<njets_btagloose<<" btag_medium 
     if(hasPassedJetSelection && hasPassedPhotonSelection)tag=true;
 
       if (FMDEBUG && tag==true) cout<<"tagged TTH had"<<endl;
-    if(l.event==DEBUG_EVENT_NUMBER_4){
-	std::cout<<"in TTH HADRONIC"<<endl;
-	std::cout<<"------------------------DEBUGGING event "<<l.event<<"------------------------"<<endl;
-	std::cout<<" njets= "<<njets<<" nbtag loose="<<njets_btagloose<<" nbtag medium="<<njets_btagmedium
-		 <<std::endl<<" ptphot1/2="<<lead_p4.Pt()<<"/"<<sublead_p4.Pt()<<" ptgg="<<diphoton.Pt()<<std::endl;
-	    }
-
 
     //      if(tag==true)  cout<<"tagged TTHhad , event"<<l.event<<"run "<<l.run<<" lumi "<<l.lumis<<endl;
 

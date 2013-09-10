@@ -222,6 +222,8 @@ void MassFactorizedMvaAnalysis::Init(LoopAll& l)
     if(includeVHmet){
     nVHmetCategories = nMetCategories;
     }
+    nTTHhadCategories =((int)includeTTHhad);
+    nTTHlepCategories =((int)includeTTHlep);
     
     std::sort(mvaVbfCatBoundaries.begin(),mvaVbfCatBoundaries.end(), std::greater<float>() );
     if (multiclassVbfSelection) {
@@ -245,7 +247,7 @@ void MassFactorizedMvaAnalysis::Init(LoopAll& l)
         std::sort(multiclassVbfCatBoundaries2.begin(),multiclassVbfCatBoundaries2.end(), std::greater<float>() );
     }
 
-    nCategories_=(nInclusiveCategories_+nVBFCategories+nVHlepCategories+nVHmetCategories);
+    nCategories_=(nInclusiveCategories_+nVBFCategories+nVHlepCategories+nVHmetCategories+nVHhadCategories+nVHhadBtagCategories+nTTHhadCategories+nTTHlepCategories);
 
     if (bdtTrainingPhilosophy == "UCSD") {
         l.rooContainer->SetNCategories(8);
@@ -358,6 +360,8 @@ void MassFactorizedMvaAnalysis::Init(LoopAll& l)
 	    } else if(i<nInclusiveCategories_+nVBFCategories+nVHlepCategories){
 		bkgPolOrderByCat.push_back(-1);
 	    } else if(i<nInclusiveCategories_+nVBFCategories+nVHlepCategories+nVHmetCategories){
+		bkgPolOrderByCat.push_back(3);
+	    } else if(i<nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHhadBtagCategories+nVHlepCategories+nTTHhadCategories+nTTHlepCategories){
 		bkgPolOrderByCat.push_back(3);
 	    }
 	}
@@ -495,9 +499,17 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
         VHmetevent = false; 
         VHmetevent_cat=0; 
 
-        int diphotonVHhad_id = -1;
-        VHhadevent = false;
+	int diphotonTTHlep_id = -1;
+	TTHlepevent = false;
+
+	int diphotonTTHhad_id = -1;
+	TTHhadevent = false;
+	
+	int diphotonVHhad_id = -1;
+	VHhadevent = false;
        
+	int diphotonVHhadBtag_id=-1;
+	VHhadBtagevent=false;
 
         if(includeVHlep){
             float eventweight = weight * genLevWeight;
@@ -545,7 +557,7 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
         }
 
         // VBF
-        if((includeVBF || includeVHhad)&&l.jet_algoPF1_n>1 && !isSyst /*avoid rescale > once*/) {
+        if((includeVBF || includeVHhad || includeVHhadBtag || includeTTHhad || includeTTHlep)&&l.jet_algoPF1_n>1 && !isSyst /*avoid rescale > once*/) {
             l.RescaleJetEnergy();
         }
 
@@ -560,8 +572,25 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
                 VBFTag2012(vbfIjet1, vbfIjet2, l, diphotonVBF_id, &smeared_pho_energy[0], true, eventweight, myweight) );
 
         }
+
+	if(includeTTHlep){
+	    diphotonTTHlep_id=l.DiphotonMITPreSelection(leadEtTTHlepCut,subleadEtTTHlepCut,phoidMvaCut,applyPtoverM, &smeared_pho_energy[0] );
+            if(diphotonTTHlep_id!=-1){
+		float eventweight = weight * smeared_pho_weight[l.dipho_leadind[diphotonTTHlep_id]] * smeared_pho_weight[l.dipho_subleadind[diphotonTTHlep_id]] * genLevWeight;
+		float myweight=1.;
+		if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
+		
+		TTHlepevent = TTHleptonicTag2012(l, diphotonTTHlep_id, &smeared_pho_energy[0], true, eventweight, myweight);
+		
+		if(TTHlepevent){
+		    if(l.diphoton_id_lep != -1)diphotonTTHlep_id=l.diphoton_id_lep;
+		}
+	    }
+	}
     
-        if(includeVHlep&&VHmuevent){
+	if(includeTTHlep&&TTHlepevent) {
+            diphoton_id = diphotonTTHlep_id;
+        } else if(includeVHlep&&VHmuevent){
             diphoton_id = diphotonVHlep_id;
         } else if (includeVHlep&&VHelevent){
             diphoton_id = diphotonVHlep_id;

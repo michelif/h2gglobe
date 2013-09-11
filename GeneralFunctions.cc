@@ -4674,37 +4674,7 @@ int LoopAll::MuonSelection2012B(float muptcut){
     return mymu;
 }
 
-int LoopAll::GetNMuonsPassingSelection2012B(float muptcut, TLorentzVector& pho1, TLorentzVector& pho2,float deltaRcut){
 
-    int mymu = -1;  
-    TLorentzVector* thismu;
-    float thiseta = -100;
-    float thispt = -100;
-    float thisiso =1000;
-    int passingMu = 0;
-
-    int nmuons=0;
-
-    if(GFDEBUG) std::cout<<"mu_glo_n "<<mu_glo_n<<std::endl;
-    for( int indmu=0; indmu<mu_glo_n; indmu++){
-
-        thismu = (TLorentzVector*) mu_glo_p4->At(indmu);
-        thiseta = fabs(thismu->Eta());
-        thispt = thismu->Pt();
-
-        if(thiseta>2.4) continue;
-        if(thispt<muptcut) continue;
-
-        if(!MuonTightID2012(indmu)) continue;
-        if(!MuonIsolation2012(indmu, thispt)) continue;
-	if(!MuonPhotonCuts2012B_2(pho1,pho2,thismu,deltaRcut))continue;
-	nmuons++;
-        if(GFDEBUG) std::cout<<"new mymu "<<mymu<<std::endl;
-    }
-    if(GFDEBUG) std::cout<<"final mymu "<<mymu<<std::endl;
-        
-    return nmuons;
-}
 
 bool LoopAll::MuonPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu){
    
@@ -4953,33 +4923,6 @@ int LoopAll::ElectronSelectionMVA2012_nocutOnMVA(float elptcut){
 }
 
 
-int LoopAll::GetNelectronsPassingSelectionMVA2012(float elptcut, TLorentzVector& pho1, TLorentzVector& pho2, float deltaRPholep_cut){
-    
-    int el_ind=-1;
-    float bestmvaval=-2;
-
-    int nelectrons=0;
-    bool passElePhoCuts=false;
-
-
-    for(int iel=0; iel<el_std_n; iel++){
-        if(ElectronMVACuts(iel)){
-            if(GFDEBUG) std::cout<<"passing mva "<<std::endl;
-            TLorentzVector* thiselp4 = (TLorentzVector*) el_std_p4->At(iel);
-    	    if(GFDEBUG) std::cout<<"passing eta "<<thiselp4->Eta()<<std::endl;
-	    if(elptcut<thiselp4->Pt()){
-	      if(GFDEBUG) std::cout<<"passing pt "<<std::endl;	     
-	      passElePhoCuts=((LoopAll*) NULL)->ElectronPhotonCuts2012B_2(pho1,pho2,*thiselp4,deltaRPholep_cut);
-	      if(passElePhoCuts){
-                nelectrons++;
-	      }
-            }
-        }
-    }
-   
-    if(GFDEBUG) std::cout<<"final el_ind "<<el_ind<<std::endl;
-    return nelectrons;
-}
 
 std::vector<int> LoopAll::GetIndexesElectronsPassingSelectionMVA2012(float elptcut){
     

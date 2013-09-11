@@ -2,9 +2,10 @@
 ##variables for VH
 ##
 jet_algoPF1_csvBtag
-#gsf_tk_n
 el_std_p4
 mu_glo_p4
+#variables not used anymore. useful for some studies
+#gsf_tk_n
 #gsf_tk_p4
 #mu_glo_charge
 #el_std_charge

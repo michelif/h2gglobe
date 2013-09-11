@@ -222,8 +222,19 @@ void MassFactorizedMvaAnalysis::Init(LoopAll& l)
     if(includeVHmet){
     nVHmetCategories = nMetCategories;
     }
-    nTTHhadCategories =((int)includeTTHhad);
-    nTTHlepCategories =((int)includeTTHlep);
+    if(includeTTHlep){
+	nTTHlepCategories =((int)includeTTHlep);
+    }
+    if(includeTTHhad){    
+	nTTHhadCategories =((int)includeTTHhad);
+    }
+    if(includeVHhad){
+	nVHhadCategories=((int)includeVHhad)*nVHhadEtaCategories;
+    }
+    if(includeVHhadBtag){
+	nVHhadBtagCategories =((int)includeVHhadBtag);
+    }
+    
     
     std::sort(mvaVbfCatBoundaries.begin(),mvaVbfCatBoundaries.end(), std::greater<float>() );
     if (multiclassVbfSelection) {
@@ -590,7 +601,9 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
     
 	if(includeTTHlep&&TTHlepevent) {
             diphoton_id = diphotonTTHlep_id;
-        } else if(includeVHlep&&VHmuevent){
+        } else if(includeTTHhad&&TTHhadevent) {
+	    diphoton_id = diphotonTTHhad_id;
+	} else if(includeVHlep&&VHmuevent){
             diphoton_id = diphotonVHlep_id;
         } else if (includeVHlep&&VHelevent){
             diphoton_id = diphotonVHlep_id;
@@ -602,7 +615,11 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
             diphoton_id = diphotonVBF_id;
         } else if(includeVHmet&&VHmetevent) {
             diphoton_id = diphotonVHmet_id;
-        }
+        }else if(includeVHhadBtag&&VHhadBtagevent) {
+	    diphoton_id = diphotonVHhadBtag_id;
+	} else if(includeVHhad&&VHhadevent) {
+	    diphoton_id = diphotonVHhad_id;
+	} 
     }
     // if we selected any di-photon, compute the Higgs candidate kinematics
     // and compute the event category

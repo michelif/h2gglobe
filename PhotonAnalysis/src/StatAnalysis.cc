@@ -1720,8 +1720,10 @@ void StatAnalysis::fillControlPlots(const TLorentzVector & lead_p4, const  TLore
     float mass = Higgs.M();
     if(category!=-10){  // really this is nomva cut but -1 means all together here
         if( category>=0 ) {
-            fillControlPlots( lead_p4, sublead_p4, Higgs, lead_r9, sublead_r9, diphoton_id, -1, isCorrectVertex, evweight,
+	    if(category<=8){
+		fillControlPlots( lead_p4, sublead_p4, Higgs, lead_r9, sublead_r9, diphoton_id, -1, isCorrectVertex, evweight,
 			      vtx, l, muVtx, mu_ind, elVtx, el_ind, diphobdt_output );
+	    }
         }
         l.FillHist("all_mass",category+1, Higgs.M(), evweight);
         if( mass>=massMin && mass<=massMax  ) {
@@ -1802,7 +1804,10 @@ void StatAnalysis::fillControlPlots(const TLorentzVector & lead_p4, const  TLore
                     float sampleweight = l.sampleContainer[l.current_sample_index].weight();
                     if(evweight*sampleweight!=0) myweight=evweight/sampleweight;
                     l.FillCutPlots(category+1,1,"_sequential",evweight,myweight);
-		    if( sublead_r9 > 0.9 ) { l.FillCutPlots(category+1+nCategories_,1,"_sequential",evweight,myweight); }
+		    if(category<=8){
+			//			if( sublead_r9 > 0.9 ) { l.FillCutPlots(category+1+nCategories_,1,"_sequential",evweight,myweight); }
+			if( sublead_r9 > 0.9 ) { l.FillCutPlots(category+1+8,1,"_sequential",evweight,myweight); }
+		    }
                 }
             }
 	    l.FillHist("rho",category+1,l.rho_algo1,evweight);

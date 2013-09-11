@@ -4130,11 +4130,7 @@ bool PhotonAnalysis::VHhadronicTag2011(LoopAll& l, int diphotonVHhad_id, float* 
     myVHhad_Mgg =diphoton.M();
 
 
-    /*    if(nm1){
-        tag = l.ApplyCutsFill(0,2, eventweight, myweight);
-    } else {
-        tag = l.ApplyCuts(0,2);
-	}*/
+
 
     return tag;
 }

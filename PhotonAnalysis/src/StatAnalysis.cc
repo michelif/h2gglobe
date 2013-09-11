@@ -1805,7 +1805,8 @@ void StatAnalysis::fillControlPlots(const TLorentzVector & lead_p4, const  TLore
                     if(evweight*sampleweight!=0) myweight=evweight/sampleweight;
                     l.FillCutPlots(category+1,1,"_sequential",evweight,myweight);
 		    if(category<=8){//not needed for ttvh analysis (and this line avoid crashes)a
-			if( sublead_r9 > 0.9 ) { l.FillCutPlots(category+1+nCategories_,1,"_sequential",evweight,myweight); }
+			//			if( sublead_r9 > 0.9 ) { l.FillCutPlots(category+1+nCategories_,1,"_sequential",evweight,myweight); }
+			if( sublead_r9 > 0.9 ) { l.FillCutPlots(category+1+8,1,"_sequential",evweight,myweight); }
 		    }
                 }
             }

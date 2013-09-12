@@ -1260,7 +1260,6 @@ int ElectronSelectionMVA2012_nocutOnMVA(float elptcut);
 bool ElectronMVACuts_nocutOnMVA(int el_ind, int vtx_ind);
 //HCP2012
 TLorentzVector METCorrection2012B(TLorentzVector lead_p4, TLorentzVector sublead_p4);
-TLorentzVector METCorrection2012B_new(TLorentzVector lead_p4, TLorentzVector sublead_p4);
 //bool METAnalysis2012B(float MET);
 bool METAnalysis2012B(TLorentzVector lead_p4, TLorentzVector sublead_p4, bool useUncor, bool doMETCleaning=true );
 bool METCleaning2012B(TLorentzVector& lead_p4, TLorentzVector& sublead_p4, TLorentzVector& myMet);

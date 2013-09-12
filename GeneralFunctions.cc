@@ -1183,64 +1183,6 @@ TLorentzVector LoopAll::correctMet_Simple( TLorentzVector & pho_lead, TLorentzVe
 }
 
 
-TLorentzVector LoopAll::METCorrection2012B_new(TLorentzVector lead_p4, TLorentzVector sublead_p4){
-  
-  // corrected met
-  static TLorentzVector finalCorrMET;
-  static int lastEvent=-1, lastLumi=-1, lastRun=-1;
-  static bool lastIsMC;
-  static TLorentzVector last_lead, last_sublead;
-  
-  bool isMC = itype[current]!=0;
-
-  if( event == lastEvent && lumis == lastLumi && run == lastRun && lastIsMC == isMC &&
-      last_lead == lead_p4 && last_sublead == sublead_p4 ) {
-	  return finalCorrMET;
-  }
-
-  // uncorrected PF met
-  TLorentzVector unpfMET;
-  unpfMET.SetPxPyPzE (met_pfmet*cos(met_phi_pfmet),met_pfmet*sin(met_phi_pfmet),0,
-		      sqrt(met_pfmet*cos(met_phi_pfmet) * met_pfmet*cos(met_phi_pfmet) 
-			   + met_pfmet*sin(met_phi_pfmet) * met_pfmet*sin(met_phi_pfmet))); 
-  
-  if (isMC) {
-    // smear raw met
-    TLorentzVector smearMET_corr = correctMet_Simple( lead_p4, sublead_p4 , &unpfMET, true, false);
-    // then shift smeared met
-    //derived by daniele july 2013
-    float px  = smearMET_corr.Pt()*cos(smearMET_corr.Phi())+1.79398e-05*met_sumet_pfmet-0.00167746;
-    float py  = smearMET_corr.Pt()*sin(smearMET_corr.Phi())+0.00350837*met_sumet_pfmet-0.497386;
-    float ene = sqrt(px*px+py*py);
-    finalCorrMET.SetPxPyPzE(px,py,0,ene);
-  } else {
-    // shifted met for data
-    /*derived by daniele                                                                                                                                                        
-      float px  = unpfMET.Pt()*cos(unpfMET.Phi())-0.00660775*met_sumet_pfmet+0.917534;                                                                                          
-      float py  = unpfMET.Pt()*sin(unpfMET.Phi())+0.00433844*met_sumet_pfmet-0.432115;*/
-
-    //derived by chiara on new reReco sample                                                                                                                                    
-    float px  = unpfMET.Pt()*cos(unpfMET.Phi())- 0.00518061*met_sumet_pfmet+0.965584;
-    float py  = unpfMET.Pt()*sin(unpfMET.Phi())+0.00262914*met_sumet_pfmet-0.272719;
-
-
-    float ene = sqrt(px*px+py*py);
-    TLorentzVector shiftedMET;
-    shiftedMET.SetPxPyPzE(px,py,0,ene);
-    // scale shifted met
-    TLorentzVector shiftscaleMET_corr = correctMet_Simple( lead_p4, sublead_p4 , &shiftedMET, false , true);
-    finalCorrMET = shiftscaleMET_corr;
-  }
-
-  lastEvent = event;
-  lastLumi  = lumis;
-  lastRun   = run;
-  lastIsMC  = isMC;
-  last_lead = lead_p4;
-  last_sublead = sublead_p4;
-  
-  return finalCorrMET;
-}
 
 
 TLorentzVector LoopAll::METCorrection2012B(TLorentzVector lead_p4, TLorentzVector sublead_p4){

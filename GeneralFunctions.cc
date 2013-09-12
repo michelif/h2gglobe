@@ -3880,28 +3880,9 @@ int  LoopAll::RescaleJetEnergy(bool force) {
     return 1;
 }
    
-void LoopAll::PhotonsToVeto(TLorentzVector* veto_p4, float drtoveto, std::vector<bool>& vetos, bool drtotkveto){
-    vetos.clear();
-
-    for(int ipho=0; ipho<pho_n; ipho++){
-        TLorentzVector* photon = (TLorentzVector*) pho_p4->At(ipho);
-        if(GFDEBUG) std::cout<<"ipho "<<ipho<<std::endl;
-        if(GFDEBUG) std::cout<<"eta "<<photon->Eta()<<std::endl;
-        if(GFDEBUG) std::cout<<"dr "<<photon->DeltaR(*veto_p4)<<std::endl;
-        if(GFDEBUG) std::cout<<"drtotk "<<pho_drtotk_25_99[ipho]<<std::endl;
-        if(photon->DeltaR(*veto_p4)<drtoveto) {
-            vetos.push_back(true);
-        } else if (drtotkveto  &&  pho_drtotk_25_99[ipho]<1.0) {
-            vetos.push_back(true);
-        } else {
-            vetos.push_back(false);
-        }
-    }
-
-}
 
 
-void LoopAll::PhotonsToVeto_2(TLorentzVector* veto_p4, float drtoveto,float drgsftoveto, std::vector<bool>& vetos, bool drtotkveto){
+void LoopAll::PhotonsToVeto(TLorentzVector* veto_p4, float drtoveto, std::vector<bool>& vetos, bool drtotkveto,float drgsftoveto){
     vetos.clear();
 
     for(int ipho=0; ipho<pho_n; ipho++){
@@ -4211,15 +4192,8 @@ int LoopAll::MuonSelection2012B(float muptcut){
 }
 
 
-bool LoopAll::MuonPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu){
-   
-    if(pho1.DeltaR(*thismu)<1.0) return false;
-    if(pho2.DeltaR(*thismu)<1.0) return false;   
 
-    return true;
-}
-
-bool LoopAll::MuonPhotonCuts2012B_2(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu,float deltaRcut){
+bool LoopAll::MuonPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu,float deltaRcut){
   //  cout<<"mu:"<<pho1.DeltaR(*thismu)<<" "<<pho2.DeltaR(*thismu)<<endl;
     if(pho1.DeltaR(*thismu)<deltaRcut) return false;
     if(pho2.DeltaR(*thismu)<deltaRcut) return false;   
@@ -4432,30 +4406,6 @@ int LoopAll::ElectronSelectionMVA2012(float elptcut){
     return el_ind;
 }
 
-int LoopAll::ElectronSelectionMVA2012_nocutOnMVA(float elptcut){
-    
-    int el_ind=-1;
-    float bestmvaval=-2;
-
-    for(int iel=0; iel<el_std_n; iel++){
-        int vtx_ind = FindElectronVertex(iel);
-	if(ElectronMVACuts_nocutOnMVA(iel,vtx_ind)){
-	  if(GFDEBUG) std::cout<<"passing mva "<<std::endl;
-            TLorentzVector* thiselp4 = (TLorentzVector*) el_std_p4->At(iel);
-            if(GFDEBUG) std::cout<<"passing eta "<<thiselp4->Eta()<<std::endl;
-            if(elptcut<thiselp4->Pt()){
-                if(GFDEBUG) std::cout<<"passing pt "<<std::endl;
-                if(bestmvaval<el_std_mva_nontrig[iel]) {
-                    bestmvaval=el_std_mva_nontrig[iel];
-                    el_ind=iel;
-                }
-            }
-        }
-    }
-   
-    if(GFDEBUG) std::cout<<"final el_ind "<<el_ind<<std::endl;
-    return el_ind;
-}
 
 
 
@@ -4535,64 +4485,13 @@ bool LoopAll::ElectronMVACuts(int el_ind, int vtx_ind){
     return pass;
 }
 
-bool LoopAll::ElectronMVACuts_nocutOnMVA(int el_ind, int vtx_ind){
-    bool pass=false;
-
-    if(GFDEBUG) std::cout<<"Is el in bounds?  el el_std_n "<<el_ind<<" "<<el_std_n<<std::endl;
-    if(el_ind<0 || el_ind>=el_std_n) return pass;
-
-    if(GFDEBUG) std::cout<<"Passes el mva?  mva "<<el_std_mva_nontrig[el_ind]<<std::endl;
-    //    if(el_std_mva_nontrig[el_ind]<0.9) return pass;
-
-    if(GFDEBUG) std::cout<<"Passes el iso/pt?   "<<el_std_mva_nontrig[el_ind]<<std::endl;
-    TLorentzVector* thisel = (TLorentzVector*) el_std_p4->At(el_ind);
-    TLorentzVector* thissc = (TLorentzVector*) el_std_sc->At(el_ind);
-    float thiseta = fabs(thissc->Eta());
-    float thispt = thisel->Pt();
-
-    if(thiseta>2.5 || (thiseta>1.442 && thiseta<1.566)) return pass;
-
-    double Aeff=0.;
-    /*
-    if(thiseta<1.0)                   Aeff=0.10;
-    if(thiseta>=1.0 && thiseta<1.479) Aeff=0.12;
-    if(thiseta>=1.479 && thiseta<2.0) Aeff=0.085;
-    if(thiseta>=2.0 && thiseta<2.2)   Aeff=0.11;
-    if(thiseta>=2.2 && thiseta<2.3)   Aeff=0.12;
-    if(thiseta>=2.3 && thiseta<2.4)   Aeff=0.12;
-    if(thiseta>=2.4)                  Aeff=0.13;
-    */
-    if(thiseta<1.0)                   Aeff=0.135;
-    if(thiseta>=1.0 && thiseta<1.479) Aeff=0.168;
-    if(thiseta>=1.479 && thiseta<2.0) Aeff=0.068;
-    if(thiseta>=2.0 && thiseta<2.2)   Aeff=0.116;
-    if(thiseta>=2.2 && thiseta<2.3)   Aeff=0.162;
-    if(thiseta>=2.3 && thiseta<2.4)   Aeff=0.241;
-    if(thiseta>=2.4)                  Aeff=0.23;
-    float thisiso=el_std_pfiso_charged[el_ind]+std::max(el_std_pfiso_neutral[el_ind]+el_std_pfiso_photon[el_ind]-rho*Aeff,0.);
-    
-    if(GFDEBUG) std::cout<<"Passes el iso/pt?  iso pt "<<thisiso<<" "<<thispt<<std::endl;
-    if (thisiso/thispt >0.15) return pass;  
-
-    if(vtx_ind!=-1){
-        if(GFDEBUG) std::cout<<"Passes d0 and dZ cuts?  d0 dZ "<<el_std_D0Vtx[el_ind][vtx_ind]<<" "<<el_std_DZVtx[el_ind][vtx_ind]<<std::endl;
-        if(fabs(el_std_D0Vtx[el_ind][vtx_ind]) > 0.02) return pass;
-        if(fabs(el_std_DZVtx[el_ind][vtx_ind]) > 0.2)  return pass;
-    }
-
-    if(el_std_hp_expin[el_ind]>1) return pass;
-    if(el_std_conv[el_ind]==0)    return pass;
-
-    pass=true;
-    return pass;
-}
 
 
-bool LoopAll::ElectronPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector& ele, bool includeVHlepPlusMet){
+bool LoopAll::ElectronPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector& ele, bool includeVHlepPlusMet, float deltaRcut){
     bool pass=false;
     if(GFDEBUG) std::cout<<"dreg1 dreg2 "<<pho1.DeltaR(ele)<<" "<<pho2.DeltaR(ele)<<std::endl;
-    if( pho1.DeltaR(ele) <= 1.0) return pass;
-    if( pho2.DeltaR(ele) <= 1.0) return pass;
+    if( pho1.DeltaR(ele) <= deltaRcut) return pass;
+    if( pho2.DeltaR(ele) <= deltaRcut) return pass;
     TLorentzVector elpho1=ele + pho1;
     TLorentzVector elpho2=ele + pho2;
     if(GFDEBUG) std::cout<<"dMeg1 dMeg2 "<<fabs(elpho1.M() - 91.19)<<" "<<fabs(elpho2.M() - 91.19)<<std::endl;
@@ -4604,21 +4503,6 @@ bool LoopAll::ElectronPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2
     return pass;
 }
 
-bool LoopAll::ElectronPhotonCuts2012B_2(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector& ele, float deltaRcut, bool doMinvCut){ 
-    bool pass=false;
-    if(GFDEBUG)     std::cout<<"dreg1 dreg2 "<<pho1.DeltaR(ele)<<" "<<pho2.DeltaR(ele)<<std::endl;
-    if( pho1.DeltaR(ele) <= deltaRcut) return pass;
-    if( pho2.DeltaR(ele) <= deltaRcut) return pass;
-    TLorentzVector elpho1=ele + pho1;
-    TLorentzVector elpho2=ele + pho2;
-    if(GFDEBUG) std::cout<<"dMeg1 dMeg2 "<<fabs(elpho1.M() - 91.19)<<" "<<fabs(elpho2.M() - 91.19)<<std::endl;
-    if(doMinvCut){
-    if( fabs(elpho1.M() - 91.19) <= 10) return pass;
-    if( fabs(elpho2.M() - 91.19) <= 10) return pass;
-    }
-    pass=true;
-    return pass;
-}
 
 
 int LoopAll::FindElectronVertex(int el_ind){

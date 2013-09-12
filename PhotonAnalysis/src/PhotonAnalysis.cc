@@ -2786,9 +2786,7 @@ bool PhotonAnalysis::ElectronTag2012B(LoopAll& l, int& diphotonVHlep_id, int& el
 
     el_ind=l.ElectronSelectionMVA2012(elptcut);
     l.el_ind=-1;
-    if(doLooseLep){
-        l.ElectronSelectionMVA2012_nocutOnMVA(elptcut);
-    }
+
     if(el_ind!=-1) {
         if(localdebug) cout<<"in ElectronTag2012B and selected "<<el_ind<<endl;
         TLorentzVector* myel = (TLorentzVector*) l.el_std_p4->At(el_ind);
@@ -4452,7 +4450,7 @@ bool PhotonAnalysis::TTHleptonicTag2012(LoopAll& l, int diphotonTTHlep_id, float
 	float drgsftoveto = drGsf_lep;
         std::vector<bool> veto_indices;
         veto_indices.clear();
-        l.PhotonsToVeto_2(myelsc, drtoveto, drgsftoveto,veto_indices, true);
+        l.PhotonsToVeto(myelsc, drtoveto,veto_indices, true, drgsftoveto);
 	/*        for(int iveto=0; iveto<veto_indices.size(); iveto++){
            cout<<"veto ipho "<<veto_indices[iveto]<<" "<<iveto<<endl;
 	   }*/
@@ -4467,8 +4465,16 @@ bool PhotonAnalysis::TTHleptonicTag2012(LoopAll& l, int diphotonTTHlep_id, float
 	    }else{
 		diphotonTTHlep_id=l.DiphotonMITPreSelection(leadEtTTHlepCut,subleadEtTTHlepCut,phoidMvaCut,applyPtoverM, &smeared_pho_energy[0],-1,true,false, veto_indices );
 	    }
-	    if(diphotonTTHlep_id!=-1)passElePhotonCuts=true;
-	}
+	    
+	    if(diphotonTTHlep_id!=-1 && elVtx != -1){
+		TLorentzVector lead_p4;
+		TLorentzVector sublead_p4;
+		
+		lead_p4 = l.get_pho_p4( l.dipho_leadind[diphotonTTHlep_id], elVtx, &smeared_pho_energy[0]);
+		sublead_p4 = l.get_pho_p4( l.dipho_subleadind[diphotonTTHlep_id], elVtx, &smeared_pho_energy[0]);
+		if(l.ElectronPhotonCuts2012B(lead_p4, sublead_p4, *myel, true,deltaRPholep_cut))passElePhotonCuts=true;
+	    }
+	}  
     }
 
     TLorentzVector lead_p4;
@@ -4498,7 +4504,7 @@ bool PhotonAnalysis::TTHleptonicTag2012(LoopAll& l, int diphotonTTHlep_id, float
 
     if(muonInd != -1){
 	mu_tag= (TLorentzVector*) l.mu_glo_p4->At(muonInd);
-	passMuPhotonCuts=l.MuonPhotonCuts2012B_2(lead_p4, sublead_p4, mu_tag,deltaRPholep_cut);
+	passMuPhotonCuts=l.MuonPhotonCuts2012B(lead_p4, sublead_p4, mu_tag,deltaRPholep_cut);
     }
 
     if((elInd==-1) && (muonInd==-1))return tag;

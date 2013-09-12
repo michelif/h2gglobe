@@ -1,8 +1,6 @@
 #include "LoopAll.h"
 #include "Sorters.h"
 #include "TRandom3.h"
-#include "CMGTools/External/interface/PileupJetIdentifier.h"
-#include "PhotonAnalysis/interface/PhotonAnalysis.h"
 #define GFDEBUG 0
 #define FMDEBUG 0
 
@@ -1183,64 +1181,6 @@ TLorentzVector LoopAll::correctMet_Simple( TLorentzVector & pho_lead, TLorentzVe
 }
 
 
-TLorentzVector LoopAll::METCorrection2012B_new(TLorentzVector lead_p4, TLorentzVector sublead_p4){
-  
-  // corrected met
-  static TLorentzVector finalCorrMET;
-  static int lastEvent=-1, lastLumi=-1, lastRun=-1;
-  static bool lastIsMC;
-  static TLorentzVector last_lead, last_sublead;
-  
-  bool isMC = itype[current]!=0;
-
-  if( event == lastEvent && lumis == lastLumi && run == lastRun && lastIsMC == isMC &&
-      last_lead == lead_p4 && last_sublead == sublead_p4 ) {
-	  return finalCorrMET;
-  }
-
-  // uncorrected PF met
-  TLorentzVector unpfMET;
-  unpfMET.SetPxPyPzE (met_pfmet*cos(met_phi_pfmet),met_pfmet*sin(met_phi_pfmet),0,
-		      sqrt(met_pfmet*cos(met_phi_pfmet) * met_pfmet*cos(met_phi_pfmet) 
-			   + met_pfmet*sin(met_phi_pfmet) * met_pfmet*sin(met_phi_pfmet))); 
-  
-  if (isMC) {
-    // smear raw met
-    TLorentzVector smearMET_corr = correctMet_Simple( lead_p4, sublead_p4 , &unpfMET, true, false);
-    // then shift smeared met
-    //derived by daniele july 2013
-    float px  = smearMET_corr.Pt()*cos(smearMET_corr.Phi())+1.79398e-05*met_sumet_pfmet-0.00167746;
-    float py  = smearMET_corr.Pt()*sin(smearMET_corr.Phi())+0.00350837*met_sumet_pfmet-0.497386;
-    float ene = sqrt(px*px+py*py);
-    finalCorrMET.SetPxPyPzE(px,py,0,ene);
-  } else {
-    // shifted met for data
-    /*derived by daniele                                                                                                                                                        
-      float px  = unpfMET.Pt()*cos(unpfMET.Phi())-0.00660775*met_sumet_pfmet+0.917534;                                                                                          
-      float py  = unpfMET.Pt()*sin(unpfMET.Phi())+0.00433844*met_sumet_pfmet-0.432115;*/
-
-    //derived by chiara on new reReco sample                                                                                                                                    
-    float px  = unpfMET.Pt()*cos(unpfMET.Phi())- 0.00518061*met_sumet_pfmet+0.965584;
-    float py  = unpfMET.Pt()*sin(unpfMET.Phi())+0.00262914*met_sumet_pfmet-0.272719;
-
-
-    float ene = sqrt(px*px+py*py);
-    TLorentzVector shiftedMET;
-    shiftedMET.SetPxPyPzE(px,py,0,ene);
-    // scale shifted met
-    TLorentzVector shiftscaleMET_corr = correctMet_Simple( lead_p4, sublead_p4 , &shiftedMET, false , true);
-    finalCorrMET = shiftscaleMET_corr;
-  }
-
-  lastEvent = event;
-  lastLumi  = lumis;
-  lastRun   = run;
-  lastIsMC  = isMC;
-  last_lead = lead_p4;
-  last_sublead = sublead_p4;
-  
-  return finalCorrMET;
-}
 
 
 TLorentzVector LoopAll::METCorrection2012B(TLorentzVector lead_p4, TLorentzVector sublead_p4){
@@ -3065,120 +3005,6 @@ int LoopAll::DiphotonCiCSelection( phoCiCIDLevel LEADCUTLEVEL, phoCiCIDLevel SUB
 
 
 
-// ---------------------------------------------------------------------------------------------------------------------------------------------
-int LoopAll::DiphotonCiCSelectionEleVeto( phoCiCIDLevel LEADCUTLEVEL, phoCiCIDLevel SUBLEADCUTLEVEL, 
-                   Float_t leadPtMin, Float_t subleadPtMin, int ncategories, bool applyPtoverM, 
-                   float *pho_energy_array, bool split, int fixedvtx, std::vector<bool> veto_indices, 
-					  bool applyElectronVeto,std::vector<int> cutsbycat) {//not sure it works well, not used
-
-  //rho=0;// CAUTION SETTING RHO TO 0 FOR 2010 DATA FILES (RHO ISN'T IN THESE FILES)
-  int g = -1;
-  int selected_sublead_index = -1;
-  float selected_lead_pt = -1;
-  float selected_sublead_pt = -1;
-
-  if( ! cutsbycat.empty() ) {
-      assert( cutsbycat.size() == 4 );
-      /// std::cout << "cutsbycat " << cutsbycat.size() <<std::endl;
-  }
-  
-  std::vector<int> passing_dipho;
-  std::vector<float> passing_sumpt;
-  for(int idipho = 0; idipho < dipho_n; ++idipho ) {
-    if( idipho >= MAX_DIPHOTONS-1 ) { 
-      std::cout << "Warning diphoton index exceeds array capacity. Throwing even away " << idipho << " " << MAX_DIPHOTONS <<  dipho_n << " " << run << " " << lumis << " " << event << " " << std::endl;
-      if( itype[current] == 0 ) { assert( 0 ); }
-      return -1;
-    }
-    int ivtx = (fixedvtx==-1) ? dipho_vtxind[idipho] : fixedvtx;
-    int lead = dipho_leadind[idipho];
-    int sublead = dipho_subleadind[idipho];
-    
-    if( lead == sublead ) { continue; }
-
-    if(veto_indices.size()!=0) {
-        if(veto_indices[lead]) continue;
-        if(veto_indices[sublead]) continue;
-    }
-
-    //    if( usePFCiC 
-    //	&& ( ! PhotonMITPreSelection(lead, ivtx, pho_energy_array) || 
-    //	     ! PhotonMITPreSelection(sublead, ivtx,  pho_energy_array) ) ) { continue; }
-
-
-  if( usePFCiC &&     ( 
-       (
-	PhotonMITPreSelectionEleVeto(lead, ivtx, pho_energy_array, 1 )
-	&& PhotonMITPreSelectionEleVeto(sublead,ivtx, pho_energy_array , 0 ) ) 
-       && 
-       (
-	PhotonMITPreSelectionEleVeto(lead, ivtx, pho_energy_array,  0 )
-	&& PhotonMITPreSelectionEleVeto(sublead,ivtx, pho_energy_array , 1 )
-	)
-       )
-      ){continue;}
-
-    TLorentzVector lead_p4 = get_pho_p4(lead,ivtx,pho_energy_array); 
-    TLorentzVector sublead_p4 = get_pho_p4(sublead,ivtx,pho_energy_array); 
-    
-    if (sublead_p4.Pt() > lead_p4.Pt()){ // Swap them but also swap the indeces
-            int tmp = lead;
-            lead = sublead;
-            sublead =tmp;
-            dipho_leadind[idipho] = lead;
-            dipho_subleadind[idipho] = sublead;
-    }
-    
-    float leadEta = fabs(((TVector3 *)sc_xyz->At(pho_scind[lead]))->Eta());
-    float subleadEta = fabs(((TVector3 *)sc_xyz->At(pho_scind[sublead]))->Eta());
-    float m_gamgam = (lead_p4+sublead_p4).M();
-    
-    if( leadEta > 2.5 || subleadEta > 2.5 || 
-	( leadEta > 1.4442 && leadEta < 1.566 ) ||
-	( subleadEta > 1.4442 && subleadEta < 1.566 ) ) { continue; }
-    
-    float leadpt = lead_p4.Pt() > sublead_p4.Pt() ? lead_p4.Pt() : sublead_p4.Pt();
-    float subleadpt = lead_p4.Pt() < sublead_p4.Pt() ? lead_p4.Pt() : sublead_p4.Pt();       
-    // Exclusive modes cut smoothly on lead pt/M but on straight pt on sublead to save sig eff and avoid HLT turn-on  
-    if(split){   
-            if ( leadpt/m_gamgam < leadPtMin/120. || subleadpt< subleadPtMin ) { continue; }  
-    }else{
-            if( applyPtoverM ) {
-		    if ( leadpt/m_gamgam < leadPtMin/120. || subleadpt/m_gamgam < subleadPtMin/120. ||
-			 leadpt < 100./3. || subleadpt < 100./4.) { continue; }
-            } else {
-		    if ( leadpt < leadPtMin || subleadpt < subleadPtMin ) { continue; }
-            }
-    }
-
-    std::vector<std::vector<bool> > ph_passcut;
-    if( ! cutsbycat.empty() ) {
-            int leadCat = PhotonCategory(lead,2,2);
-            int subleadCat = PhotonCategory(sublead,2,2);
-            LEADCUTLEVEL    = (phoCiCIDLevel)cutsbycat[leadCat];
-            SUBLEADCUTLEVEL = (phoCiCIDLevel)cutsbycat[subleadCat];
-    }
-    if( PhotonCiCSelectionLevel(lead, ivtx, ph_passcut, ncategories, 0, pho_energy_array ) < LEADCUTLEVEL ) { continue; }
-    if( PhotonCiCSelectionLevel(sublead, ivtx, ph_passcut, ncategories, 1, pho_energy_array ) < SUBLEADCUTLEVEL ) { continue; }
-    
-    passing_dipho.push_back(idipho);
-    passing_sumpt.push_back(leadpt+subleadpt);
-  }
-  
-  if( passing_dipho.empty() ) { return -1; }
-  
-  std::vector<int> passing_dipho_places;
-  for (int counting=0;counting<passing_dipho.size();counting++){
-	  passing_dipho_places.push_back(counting); // This is very weird, but needed for later  
-  }
-  std::sort(passing_dipho_places.begin(),passing_dipho_places.end(),
-	    SimpleSorter<float,std::greater<float> >(&passing_sumpt[0]));
-  //std::sort(passing_dipho.begin(),passing_dipho.end(),
-  //    SimpleSorter<float,std::greater<double> >(&passing_sumpt[0]));
-  
-  return passing_dipho[passing_dipho_places[0]];
-
-}
 
 int LoopAll::DiphotonMITPreSelection(Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCut, bool applyPtoverM, float *pho_energy_array, int fixedvtx, bool split, bool kinonly, std::vector<bool> veto_indices) {
 
@@ -3371,87 +3197,6 @@ bool LoopAll::PhotonMITPreSelection( int photon_index, int vertex_index, float *
 }
 
 
-//Define new selection to have ONLY to electron veto only one photon
-bool LoopAll::PhotonMITPreSelectionEleVeto( int photon_index, int vertex_index, float *pho_energy_array, int applyElectronVeto ) {
-
-  int r9_category = (int) (pho_r9[photon_index] <= 0.9);                                                      
-  int photon_category = r9_category + 2*PhotonEtaCategory(photon_index,2);                                 
-  int photon_cic_category = PhotonCategory(photon_index,2,2);
-   
-  float mitCuts_hoe[4]                 = {0.082,0.075,0.075,0.075};                                        
-  float mitCuts_sieie[4]               = {0.014,0.014,0.034,0.034};                                        
-  float mitCuts_ecaliso[4]             = {50,4,50,4};                                                      
-  float mitCuts_hcaliso[4]             = {50,4,50,4};                                                      
-  float mitCuts_trkiso[4]              = {50,4,50,4};                                                      
-  //float mitCuts_hcalecal[4]            = {3,3,3,3};                                                        
-  //float mitCuts_abstrkiso[4]           = {2.8,2.8,2.8,2.8};                                                
-  //float mitCuts_trkiso_hollow03[4]     = {4,4,4,4};                                                       
-  //float mitCuts_drtotk_25_99[4]  = {0.26,0.029,0.0062,0.0055};
-  float mitCuts_pfiso[4]               = {4,4,4,4}; // WARN if depends on category should change below
-
-  TLorentzVector phop4 = get_pho_p4( photon_index, vertex_index, pho_energy_array);                      
-  //TLorentzVector phop4_badvtx = get_pho_p4( photon_index, pho_tkiso_badvtx_id[photon_index], pho_energy_array  );
-
-  //float rhofac=0.17;
-  float val_hoe        = pho_hoe[photon_index];
-  float val_sieie      = pho_sieie[photon_index];                                                          
-  float val_ecaliso = pho_ecalsumetconedr03[photon_index] - 0.012*phop4.Et();                              
-  float val_hcaliso = pho_hcalsumetconedr03[photon_index] - 0.005*phop4.Et(); 
-  float val_trkiso  = pho_trksumpthollowconedr03[photon_index] - 0.002*phop4.Et();                          \
-
-  //float val_hcalecal   = (pho_ecalsumetconedr03[photon_index]+pho_hcalsumetconedr03[photon_index]-rho_algo1*rhofac);                                             
-  //float val_abstrkiso  = (*pho_tkiso_recvtx_030_002_0000_10_01)[photon_index][vertex_index];                
-  //float val_trkiso_hollow03 = pho_trksumpthollowconedr03[photon_index];                                    
-  //float val_drtotk_25_99 = pho_drtotk_25_99[photon_index];
-  int val_pho_isconv = pho_isconv[photon_index];
-  float val_pfiso02 = (*pho_pfiso_mycharged02)[photon_index][vertex_index];
-
-  /*
-      if (run==170397 && lumis==279 &&event==304405242){
-     
-      std::cout << "rho " << rho <<std::endl;
-      std::cout << "pho_n " << pho_n <<std::endl;
-      std::cout << "pho_index " << photon_index <<std::endl;
-      std::cout << "pho_et " << phop4.Et() <<std::endl;
-      std::cout << "hoe " << val_hoe <<std::endl;
-      std::cout << "sieie " << val_sieie <<std::endl;
-      std::cout << "ecaliso " << val_ecaliso <<std::endl;
-      std::cout << "hcaliso " << val_hcaliso <<std::endl;
-      std::cout << "hcalecal " << val_hcalecal <<std::endl;
-      std::cout << "abstrkiso " << val_abstrkiso <<std::endl;
-      std::cout << "trkiso " << val_trkiso_hollow03 <<std::endl;
-      std::cout << "isconv " << val_pho_isconv <<std::endl;
-     
-      std::cout << "r9 " << pho_r9[photon_index] <<std::endl;
-      std::cout << "r9 categoty " << r9_category <<std::endl;
-      std::cout << "eta scxyz" << fabs(((TVector3*)sc_xyz->At(pho_scind[photon_index]))->Eta()) <<std::endl;
-      std::cout << "category" << photon_category <<std::endl;
-      }
-  */
-  
-  // can't apply cuts in categories at reduction level because of the shape rescaling
-  if( itype[current] == 0 || typerun != kReduce ) {
-    if (val_hoe             >= mitCuts_hoe[photon_category]         ) return false;                                           
-    if (val_sieie           >= mitCuts_sieie[photon_category]       ) return false;
-    if (val_hcaliso         >= mitCuts_hcaliso[photon_category]     ) return false;                                           
-    if (val_trkiso          >= mitCuts_trkiso[photon_category]      ) return false;
-    //if (val_hcalecal        >= mitCuts_hcalecal[photon_category]    ) return false;
-    //if (val_abstrkiso       >= mitCuts_abstrkiso[photon_category]   ) return false;                   
-    //if (val_trkiso_hollow03 >= mitCuts_trkiso_hollow03[photon_category]) return false;                                        
-  }
-  if( typerun != kReduce  ) {
-    // if (val_drtotk_25_99    <  mitCuts_drtotk_25_99[photon_category]   ) return false; // Electron Rejection based on CiC for now
-    if ((!val_pho_isconv && applyElectronVeto==1) || (applyElectronVeto==0 && val_pho_isconv) ) return false; // Electron Rejection based Conversion Safe Veto
-  }
-   
-  // this does not depend on R9
-  if( typerun != kReduce ) {
-    if (val_pfiso02 >= mitCuts_pfiso[photon_category]) return false;            
-
-  }
-   
-  return true;
-}
 
 
 // Define newfunction to calculate MIT (Pre-)Selection                                                      
@@ -4135,28 +3880,9 @@ int  LoopAll::RescaleJetEnergy(bool force) {
     return 1;
 }
    
-void LoopAll::PhotonsToVeto(TLorentzVector* veto_p4, float drtoveto, std::vector<bool>& vetos, bool drtotkveto){
-    vetos.clear();
-
-    for(int ipho=0; ipho<pho_n; ipho++){
-        TLorentzVector* photon = (TLorentzVector*) pho_p4->At(ipho);
-        if(GFDEBUG) std::cout<<"ipho "<<ipho<<std::endl;
-        if(GFDEBUG) std::cout<<"eta "<<photon->Eta()<<std::endl;
-        if(GFDEBUG) std::cout<<"dr "<<photon->DeltaR(*veto_p4)<<std::endl;
-        if(GFDEBUG) std::cout<<"drtotk "<<pho_drtotk_25_99[ipho]<<std::endl;
-        if(photon->DeltaR(*veto_p4)<drtoveto) {
-            vetos.push_back(true);
-        } else if (drtotkveto  &&  pho_drtotk_25_99[ipho]<1.0) {
-            vetos.push_back(true);
-        } else {
-            vetos.push_back(false);
-        }
-    }
-
-}
 
 
-void LoopAll::PhotonsToVeto_2(TLorentzVector* veto_p4, float drtoveto,float drgsftoveto, std::vector<bool>& vetos, bool drtotkveto){
+void LoopAll::PhotonsToVeto(TLorentzVector* veto_p4, float drtoveto, std::vector<bool>& vetos, bool drtotkveto,float drgsftoveto){
     vetos.clear();
 
     for(int ipho=0; ipho<pho_n; ipho++){
@@ -4226,220 +3952,11 @@ std::pair<int, int> LoopAll::Select2HighestPtJets(TLorentzVector& leadpho, TLore
 }
 
 
-std::pair<int, int> LoopAll::SelectBtaggedAndHighestPtJets(LoopAll& l,int diphoton_id, const TLorentzVector& leadpho,const TLorentzVector& subleadpho, Bool_t * jetid_flags)
-{
-    std::pair<int, int> myJets(-1,-1);
-    std::pair<int, int> fail(-1,-1);
-
-    std::pair<float, float> myJetspt(-1.,-1.);
-
-    float dr2pho = 0.5;
-    float dr2jet = 0.5;
-
-    TLorentzVector* j1p4;
-    TLorentzVector* j2p4;
-    float j1pt=-1;
-    float j2pt=-1;
-
-    float ptJets_thresh=25.;
-
-    static std::vector<unsigned char> id_flags;
-    if( jetid_flags == 0 ) {
-      ((PhotonAnalysis*) NULL)->switchJetIdVertex( l, l.dipho_vtxind[diphoton_id] );
-      id_flags.resize(l.jet_algoPF1_n);
-      for(int ijet=0; ijet<l.jet_algoPF1_n; ++ijet ) {
-	id_flags[ijet] = PileupJetIdentifier::passJetId(l.jet_algoPF1_cutbased_wp_level[ijet], PileupJetIdentifier::kLoose);
-      }
-      jetid_flags = (bool*)&id_flags[0];
-    }
 
 
 
-    // select btagged or highest pt jets
-    std::vector<int> index_selected_btagloose;
-    for(int j1_i=0; j1_i<jet_algoPF1_n; j1_i++){
-        j1p4 = (TLorentzVector*) jet_algoPF1_p4->At(j1_i);
-        if(jetid_flags != 0 && !jetid_flags[j1_i]) continue; 
-        if(fabs(j1p4->Eta()) > 2.4) continue;
-        if(j1p4->DeltaR(leadpho) < dr2pho) continue;
-        if(j1p4->DeltaR(subleadpho) < dr2pho) continue;
-        j1pt=j1p4->Pt();
-	if(j1pt<ptJets_thresh) continue;
-
-	if(jet_algoPF1_csvBtag[j1_i]>0.244) {
-	  index_selected_btagloose.push_back(j1_i);
-	  }
-	
-	  if(j1pt>myJetspt.first) {
-            myJets.second=myJets.first;
-            myJetspt.second=myJetspt.first;
-            myJetspt.first=j1pt;
-            myJets.first=j1_i;
-	  }        else if(j1pt>myJetspt.second) {
-            myJetspt.second=j1pt;
-            myJets.second=j1_i;
-        }
-
-    }
-    
-    if( index_selected_btagloose.size()==1 ) {
-      if( index_selected_btagloose[0]!=myJets.first ) {
-	myJets.second = index_selected_btagloose[0];
-
-      } 
- 
-   }else if (index_selected_btagloose.size()>1){
-      myJets.first = index_selected_btagloose[0];
-      myJets.second = index_selected_btagloose[1];
-    }
 
 
-    return myJets;
-
-}
-
-
-vector<int> LoopAll::SelectJets(const TLorentzVector& leadpho, const TLorentzVector& subleadpho, Bool_t * jetid_flags)
-{
-  float dr2pho = 0.5;
-  TLorentzVector* j1p4;
-  TLorentzVector* j2p4;
-  float j1pt=-1.;
-  float j2pt=-1.;
-  vector<int> myJets;
-  myJets.clear();
-
-  for(int j1_i=0; j1_i<jet_algoPF1_n; j1_i++){
-    j1p4 = (TLorentzVector*) jet_algoPF1_p4->At(j1_i);
-    if(GFDEBUG) std::cout<<"jet "<<j1_i<<std::endl;
-    if(GFDEBUG) std::cout<<"passing pu id?"<<std::endl;
-    //       if(jetid_flags != 0 && !jetid_flags[j1_i]) continue; 
-    if(GFDEBUG) std::cout<<"within eta 4.7?"<<std::endl;
-    if(fabs(j1p4->Eta()) > 4.7) continue;
-    if(GFDEBUG) std::cout<<"close to leadpho?"<<std::endl;
-    if(j1p4->DeltaR(leadpho) < dr2pho) continue;
-    if(GFDEBUG) std::cout<<"close to subleadpho?"<<std::endl;
-    if(j1p4->DeltaR(subleadpho) < dr2pho) continue;
-    j1pt=j1p4->Pt();
-    if(j1pt < 25) continue;
-    if(GFDEBUG) std::cout<<"passing all single jet requirements with pt"<<j1pt<<std::endl;
-    myJets.push_back(j1_i);
-  }
-
-  // now sort the vector by jet pt
-  int tmp = myJets[0];
-  int max = myJets[0];
-  float maxpt = -1.;
-  if(GFDEBUG) cout << "jet_algoPF1_n= "<< jet_algoPF1_n << "\tmyJets.size()= " << myJets.size() << endl;
-  for(int i=0;i<(int)myJets.size()-1;i++) {
-    j1p4 = (TLorentzVector*) jet_algoPF1_p4->At(myJets[i]);
-    j1pt = (float)j1p4->Pt();
-    max = i;
-    maxpt = j1pt;
-    if(GFDEBUG) cout << "i= " << i << "\tmyJets[i]= " << myJets[i] << "\tj1pt= " << j1pt << endl;
-    for(int x=i+1; x<(int)myJets.size(); x++) {
-      j2p4 = (TLorentzVector*) jet_algoPF1_p4->At(myJets[x]);
-      j2pt = (float)j2p4->Pt();
-      if(GFDEBUG) cout << "\tx= " << x << "\tmyJets[x]= " << myJets[x] << "j2pt= " << j2pt << endl;
-      if(j2pt > maxpt) {
-        max = x;
-	maxpt = j2pt;
-	if(GFDEBUG) cout << "## New Max found: max= " << max << "\tmyJets[max]= " << myJets[max] << endl;
-	
-      }
-    }
-    tmp = myJets[i];
-    myJets[i] = myJets[max];
-    myJets[max] = tmp;
-  }
-  if(GFDEBUG)
-    {
-      for(int i=0 ; i< myJets.size() ; i++)
-	{
-	  j1p4 = (TLorentzVector*) jet_algoPF1_p4->At(myJets[i]);
-	  cout << "myJets[" << i << "]= " << myJets[i] << "\tj1p4->Pt()= " << j1p4->Pt() << endl;
-	}
-    }
-  return myJets;
-}
-
-
-vector<int> LoopAll::SelectJets_looser(LoopAll& l,int diphoton_id,const TLorentzVector& leadpho, const TLorentzVector& subleadpho, Bool_t * jetid_flags)
-{
-  float dr2pho = 0.5;
-  TLorentzVector* j1p4;
-  TLorentzVector* j2p4;
-  float j1pt=-1.;
-  float j2pt=-1.;
-  vector<int> myJets;
-  myJets.clear();
-
-  static std::vector<unsigned char> id_flags;
-  if( jetid_flags == 0 ) {
-    ((PhotonAnalysis*) NULL)->switchJetIdVertex( l, l.dipho_vtxind[diphoton_id] );
-    id_flags.resize(l.jet_algoPF1_n);
-    for(int ijet=0; ijet<l.jet_algoPF1_n; ++ijet ) {
-      id_flags[ijet] = PileupJetIdentifier::passJetId(l.jet_algoPF1_cutbased_wp_level[ijet], PileupJetIdentifier::kLoose);
-    }
-    jetid_flags = (bool*)&id_flags[0];
-  }
-  
-
-
-  for(int j1_i=0; j1_i<jet_algoPF1_n; j1_i++){
-    j1p4 = (TLorentzVector*) jet_algoPF1_p4->At(j1_i);
-    if(GFDEBUG) std::cout<<"jet "<<j1_i<<std::endl;
-    if(GFDEBUG) std::cout<<"passing pu id?"<<std::endl;
-    if(jetid_flags != 0 && !jetid_flags[j1_i]) continue; 
-    if(GFDEBUG) std::cout<<"within eta 4.7?"<<std::endl;
-    if(fabs(j1p4->Eta()) > 2.4) continue;
-    if(GFDEBUG) std::cout<<"close to leadpho?"<<std::endl;
-    if(j1p4->DeltaR(leadpho) < dr2pho) continue;
-    if(GFDEBUG) std::cout<<"close to subleadpho?"<<std::endl;
-    if(j1p4->DeltaR(subleadpho) < dr2pho) continue;
-    j1pt=j1p4->Pt();
-    if(j1pt < 25) continue;
-    if(GFDEBUG) std::cout<<"passing all single jet requirements with pt"<<j1pt<<std::endl;
-
-    myJets.push_back(j1_i);
-  }
-
-  // now sort the vector by jet pt
-  int tmp = myJets[0];
-  int max = myJets[0];
-  float maxpt = -1.;
-  if(GFDEBUG) cout << "jet_algoPF1_n= "<< jet_algoPF1_n << "\tmyJets.size()= " << myJets.size() << endl;
-  for(int i=0;i<(int)myJets.size()-1;i++) {
-    j1p4 = (TLorentzVector*) jet_algoPF1_p4->At(myJets[i]);
-    j1pt = (float)j1p4->Pt();
-    max = i;
-    maxpt = j1pt;
-    if(GFDEBUG) cout << "i= " << i << "\tmyJets[i]= " << myJets[i] << "\tj1pt= " << j1pt << endl;
-    for(int x=i+1; x<(int)myJets.size(); x++) {
-      j2p4 = (TLorentzVector*) jet_algoPF1_p4->At(myJets[x]);
-      j2pt = (float)j2p4->Pt();
-      if(GFDEBUG) cout << "\tx= " << x << "\tmyJets[x]= " << myJets[x] << "j2pt= " << j2pt << endl;
-      if(j2pt > maxpt) {
-        max = x;
-	maxpt = j2pt;
-	if(GFDEBUG) cout << "## New Max found: max= " << max << "\tmyJets[max]= " << myJets[max] << endl;
-	
-      }
-    }
-    tmp = myJets[i];
-    myJets[i] = myJets[max];
-    myJets[max] = tmp;
-  }
-  if(GFDEBUG)
-    {
-      for(int i=0 ; i< myJets.size() ; i++)
-	{
-	  j1p4 = (TLorentzVector*) jet_algoPF1_p4->At(myJets[i]);
-	  cout << "myJets[" << i << "]= " << myJets[i] << "\tj1p4->Pt()= " << j1p4->Pt() << endl;
-	}
-    }
-  return myJets;
-}
 
 int LoopAll::MuonSelection(TLorentzVector& pho1, TLorentzVector& pho2, int vtxind){
   int mymu = -1;
@@ -4675,15 +4192,8 @@ int LoopAll::MuonSelection2012B(float muptcut){
 }
 
 
-bool LoopAll::MuonPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu){
-   
-    if(pho1.DeltaR(*thismu)<1.0) return false;
-    if(pho2.DeltaR(*thismu)<1.0) return false;   
 
-    return true;
-}
-
-bool LoopAll::MuonPhotonCuts2012B_2(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu,float deltaRcut){
+bool LoopAll::MuonPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu,float deltaRcut){
   //  cout<<"mu:"<<pho1.DeltaR(*thismu)<<" "<<pho2.DeltaR(*thismu)<<endl;
     if(pho1.DeltaR(*thismu)<deltaRcut) return false;
     if(pho2.DeltaR(*thismu)<deltaRcut) return false;   
@@ -4896,30 +4406,6 @@ int LoopAll::ElectronSelectionMVA2012(float elptcut){
     return el_ind;
 }
 
-int LoopAll::ElectronSelectionMVA2012_nocutOnMVA(float elptcut){
-    
-    int el_ind=-1;
-    float bestmvaval=-2;
-
-    for(int iel=0; iel<el_std_n; iel++){
-        int vtx_ind = FindElectronVertex(iel);
-	if(ElectronMVACuts_nocutOnMVA(iel,vtx_ind)){
-	  if(GFDEBUG) std::cout<<"passing mva "<<std::endl;
-            TLorentzVector* thiselp4 = (TLorentzVector*) el_std_p4->At(iel);
-            if(GFDEBUG) std::cout<<"passing eta "<<thiselp4->Eta()<<std::endl;
-            if(elptcut<thiselp4->Pt()){
-                if(GFDEBUG) std::cout<<"passing pt "<<std::endl;
-                if(bestmvaval<el_std_mva_nontrig[iel]) {
-                    bestmvaval=el_std_mva_nontrig[iel];
-                    el_ind=iel;
-                }
-            }
-        }
-    }
-   
-    if(GFDEBUG) std::cout<<"final el_ind "<<el_ind<<std::endl;
-    return el_ind;
-}
 
 
 
@@ -4999,64 +4485,13 @@ bool LoopAll::ElectronMVACuts(int el_ind, int vtx_ind){
     return pass;
 }
 
-bool LoopAll::ElectronMVACuts_nocutOnMVA(int el_ind, int vtx_ind){
-    bool pass=false;
-
-    if(GFDEBUG) std::cout<<"Is el in bounds?  el el_std_n "<<el_ind<<" "<<el_std_n<<std::endl;
-    if(el_ind<0 || el_ind>=el_std_n) return pass;
-
-    if(GFDEBUG) std::cout<<"Passes el mva?  mva "<<el_std_mva_nontrig[el_ind]<<std::endl;
-    //    if(el_std_mva_nontrig[el_ind]<0.9) return pass;
-
-    if(GFDEBUG) std::cout<<"Passes el iso/pt?   "<<el_std_mva_nontrig[el_ind]<<std::endl;
-    TLorentzVector* thisel = (TLorentzVector*) el_std_p4->At(el_ind);
-    TLorentzVector* thissc = (TLorentzVector*) el_std_sc->At(el_ind);
-    float thiseta = fabs(thissc->Eta());
-    float thispt = thisel->Pt();
-
-    if(thiseta>2.5 || (thiseta>1.442 && thiseta<1.566)) return pass;
-
-    double Aeff=0.;
-    /*
-    if(thiseta<1.0)                   Aeff=0.10;
-    if(thiseta>=1.0 && thiseta<1.479) Aeff=0.12;
-    if(thiseta>=1.479 && thiseta<2.0) Aeff=0.085;
-    if(thiseta>=2.0 && thiseta<2.2)   Aeff=0.11;
-    if(thiseta>=2.2 && thiseta<2.3)   Aeff=0.12;
-    if(thiseta>=2.3 && thiseta<2.4)   Aeff=0.12;
-    if(thiseta>=2.4)                  Aeff=0.13;
-    */
-    if(thiseta<1.0)                   Aeff=0.135;
-    if(thiseta>=1.0 && thiseta<1.479) Aeff=0.168;
-    if(thiseta>=1.479 && thiseta<2.0) Aeff=0.068;
-    if(thiseta>=2.0 && thiseta<2.2)   Aeff=0.116;
-    if(thiseta>=2.2 && thiseta<2.3)   Aeff=0.162;
-    if(thiseta>=2.3 && thiseta<2.4)   Aeff=0.241;
-    if(thiseta>=2.4)                  Aeff=0.23;
-    float thisiso=el_std_pfiso_charged[el_ind]+std::max(el_std_pfiso_neutral[el_ind]+el_std_pfiso_photon[el_ind]-rho*Aeff,0.);
-    
-    if(GFDEBUG) std::cout<<"Passes el iso/pt?  iso pt "<<thisiso<<" "<<thispt<<std::endl;
-    if (thisiso/thispt >0.15) return pass;  
-
-    if(vtx_ind!=-1){
-        if(GFDEBUG) std::cout<<"Passes d0 and dZ cuts?  d0 dZ "<<el_std_D0Vtx[el_ind][vtx_ind]<<" "<<el_std_DZVtx[el_ind][vtx_ind]<<std::endl;
-        if(fabs(el_std_D0Vtx[el_ind][vtx_ind]) > 0.02) return pass;
-        if(fabs(el_std_DZVtx[el_ind][vtx_ind]) > 0.2)  return pass;
-    }
-
-    if(el_std_hp_expin[el_ind]>1) return pass;
-    if(el_std_conv[el_ind]==0)    return pass;
-
-    pass=true;
-    return pass;
-}
 
 
-bool LoopAll::ElectronPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector& ele, bool includeVHlepPlusMet){
+bool LoopAll::ElectronPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector& ele, bool includeVHlepPlusMet, float deltaRcut){
     bool pass=false;
     if(GFDEBUG) std::cout<<"dreg1 dreg2 "<<pho1.DeltaR(ele)<<" "<<pho2.DeltaR(ele)<<std::endl;
-    if( pho1.DeltaR(ele) <= 1.0) return pass;
-    if( pho2.DeltaR(ele) <= 1.0) return pass;
+    if( pho1.DeltaR(ele) <= deltaRcut) return pass;
+    if( pho2.DeltaR(ele) <= deltaRcut) return pass;
     TLorentzVector elpho1=ele + pho1;
     TLorentzVector elpho2=ele + pho2;
     if(GFDEBUG) std::cout<<"dMeg1 dMeg2 "<<fabs(elpho1.M() - 91.19)<<" "<<fabs(elpho2.M() - 91.19)<<std::endl;
@@ -5068,21 +4503,6 @@ bool LoopAll::ElectronPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2
     return pass;
 }
 
-bool LoopAll::ElectronPhotonCuts2012B_2(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector& ele, float deltaRcut, bool doMinvCut){ 
-    bool pass=false;
-    if(GFDEBUG)     std::cout<<"dreg1 dreg2 "<<pho1.DeltaR(ele)<<" "<<pho2.DeltaR(ele)<<std::endl;
-    if( pho1.DeltaR(ele) <= deltaRcut) return pass;
-    if( pho2.DeltaR(ele) <= deltaRcut) return pass;
-    TLorentzVector elpho1=ele + pho1;
-    TLorentzVector elpho2=ele + pho2;
-    if(GFDEBUG) std::cout<<"dMeg1 dMeg2 "<<fabs(elpho1.M() - 91.19)<<" "<<fabs(elpho2.M() - 91.19)<<std::endl;
-    if(doMinvCut){
-    if( fabs(elpho1.M() - 91.19) <= 10) return pass;
-    if( fabs(elpho2.M() - 91.19) <= 10) return pass;
-    }
-    pass=true;
-    return pass;
-}
 
 
 int LoopAll::FindElectronVertex(int el_ind){

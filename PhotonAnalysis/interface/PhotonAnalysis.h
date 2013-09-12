@@ -5,6 +5,8 @@
 #include "VertexAnalysis/interface/HggVertexAnalyzer.h"
 #include "VertexAnalysis/interface/PhotonInfo.h"
 
+#include "CMGTools/External/interface/PileupJetIdentifier.h"
+
 #include "TriggerSelection.h"
 #include "EnergySmearer.h"
 
@@ -163,6 +165,11 @@ class PhotonAnalysis : public BaseAnalysis
 
     bool createCS;
     bool doLooseLep;
+
+    float diphobdt_output_Cut_TTHlep;
+    float diphobdt_output_Cut_TTHhad;
+    float diphobdt_output_Cut_VHhadBtag;
+    float diphobdt_output_Cut_VHhad;
 
     bool optimizeMVA;
 
@@ -443,7 +450,7 @@ class PhotonAnalysis : public BaseAnalysis
     // VH category w btag
     bool VHhadronicBtag2012(LoopAll& l, int diphoton_id, float* smeared_pho_energy=0, bool nm1=false, float eventweight=1, float myweight=1,bool *jetid_flags=0);
     //TTH leptonic category
-    bool TTHleptonicTag2012(LoopAll& l, int diphoton_id, float* smeared_pho_energy=0, bool nm1=false, float eventweight=1, float myweight=1,bool *jetid_flags=0);
+    bool TTHleptonicTag2012(LoopAll& l, int diphoton_id, float* smeared_pho_energy=0, bool nm1=false, float eventweight=1, float myweight=1,float phoidMvaCut=-1,bool *jetid_flags=0,bool mvaselection=false );
     //TTH leptonic category
     bool TTHhadronicTag2012(LoopAll& l, int diphoton_id, float* smeared_pho_energy=0, bool nm1=false, float eventweight=1, float myweight=1,bool *jetid_flags=0);
 
@@ -633,6 +640,7 @@ class PhotonAnalysis : public BaseAnalysis
     //GBRForest *fReaderebvariance;
     //GBRForest *fReaderee;
     //GBRForest *fReadereevariance;
+    std::pair<int, int> SelectBtaggedAndHighestPtJets(LoopAll& l,int diphoton_id,const TLorentzVector& leadpho,const TLorentzVector& subleadpho, Bool_t * jetid_flags=0);
     float getDiphoBDTOutput(LoopAll &l,int diphoton_id,TLorentzVector lead_p4, TLorentzVector sublead_p4,std::string bdtTrainingPhilosophy="MIT");
 };
 

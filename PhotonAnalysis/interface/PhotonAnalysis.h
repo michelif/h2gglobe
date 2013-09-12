@@ -5,6 +5,8 @@
 #include "VertexAnalysis/interface/HggVertexAnalyzer.h"
 #include "VertexAnalysis/interface/PhotonInfo.h"
 
+#include "CMGTools/External/interface/PileupJetIdentifier.h"
+
 #include "TriggerSelection.h"
 #include "EnergySmearer.h"
 
@@ -628,6 +630,7 @@ class PhotonAnalysis : public BaseAnalysis
     //GBRForest *fReaderebvariance;
     //GBRForest *fReaderee;
     //GBRForest *fReadereevariance;
+    std::pair<int, int> SelectBtaggedAndHighestPtJets(LoopAll& l,int diphoton_id,const TLorentzVector& leadpho,const TLorentzVector& subleadpho, Bool_t * jetid_flags=0);
     float getDiphoBDTOutput(LoopAll &l,int diphoton_id,TLorentzVector lead_p4, TLorentzVector sublead_p4,std::string bdtTrainingPhilosophy="MIT");
 };
 

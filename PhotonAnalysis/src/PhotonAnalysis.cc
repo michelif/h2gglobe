@@ -114,7 +114,6 @@ PhotonAnalysis::PhotonAnalysis()  :
     drSC_lep=0.;
     drGsf_lep=0.;
 
-    doApplyEleVeto=false;
 
     reComputeCiCPF = false;
     skimOnDiphoN = true;
@@ -4227,9 +4226,9 @@ bool PhotonAnalysis::VHhadronicBtag2012(LoopAll& l, int diphotonVHhadBtag_id, fl
 
     std::pair<int, int> jets;
     if(usePUjetveto){
-        jets = l.SelectBtaggedAndHighestPtJets(l,diphotonVHhadBtag_id,lead_p4, sublead_p4, jetid_flags );
+        jets = SelectBtaggedAndHighestPtJets(l,diphotonVHhadBtag_id,lead_p4, sublead_p4, jetid_flags );
     } else {
-        jets = l.SelectBtaggedAndHighestPtJets(l,diphotonVHhadBtag_id,lead_p4, sublead_p4);
+        jets = SelectBtaggedAndHighestPtJets(l,diphotonVHhadBtag_id,lead_p4, sublead_p4);
     }
 
     if(jets.first==-1 or jets.second==-1) return tag;
@@ -4538,15 +4537,8 @@ bool PhotonAnalysis::TTHleptonicTag2012(LoopAll& l, int diphotonTTHlep_id, float
 
 	// need to check again for d0 and dZ (couldn't before because we didn't have the vertex)                                                                            
 	if(l.ElectronMVACuts(elInd, elVtx)){
-	    if(!doApplyEleVeto){
 		diphotonTTHlep_id = l.DiphotonCiCSelection( l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtTTHlepCut,subleadEtTTHlepCut, 4,
 							    applyPtoverM, &smeared_pho_energy[0], true, -1, veto_indices);
-	    }else{
-		diphotonTTHlep_id = l.DiphotonCiCSelectionEleVeto( l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtTTHlepCut,subleadEtTTHlepCut, 4,
-								   applyPtoverM, &smeared_pho_energy[0], true, -1, veto_indices,true);
-	    }
-	    
-	    
 	    if(diphotonTTHlep_id!=-1)passElePhotonCuts=true;
 	}
     }
@@ -5918,6 +5910,81 @@ void PhotonAnalysis::GetRegressionCorrections(LoopAll &l){
         l.pho_regr_energyerr[ipho] = ecorerr;
     }
 }
+
+
+std::pair<int, int> PhotonAnalysis::SelectBtaggedAndHighestPtJets(LoopAll& l,int diphoton_id, const TLorentzVector& leadpho,const TLorentzVector& subleadpho, Bool_t * jetid_flags)
+{
+    std::pair<int, int> myJets(-1,-1);
+    std::pair<int, int> fail(-1,-1);
+
+    std::pair<float, float> myJetspt(-1.,-1.);
+
+    float dr2pho = 0.5;
+    float dr2jet = 0.5;
+
+    TLorentzVector* j1p4;
+    TLorentzVector* j2p4;
+    float j1pt=-1;
+    float j2pt=-1;
+
+    float ptJets_thresh=25.;
+
+    static std::vector<unsigned char> id_flags;
+    if( jetid_flags == 0 ) {
+      ((PhotonAnalysis*) NULL)->switchJetIdVertex( l, l.dipho_vtxind[diphoton_id] );
+      id_flags.resize(l.jet_algoPF1_n);
+      for(int ijet=0; ijet<l.jet_algoPF1_n; ++ijet ) {
+	id_flags[ijet] = PileupJetIdentifier::passJetId(l.jet_algoPF1_cutbased_wp_level[ijet], PileupJetIdentifier::kLoose);
+      }
+      jetid_flags = (bool*)&id_flags[0];
+    }
+
+
+
+    // select btagged or highest pt jets
+    std::vector<int> index_selected_btagloose;
+    for(int j1_i=0; j1_i<l.jet_algoPF1_n; j1_i++){
+        j1p4 = (TLorentzVector*) l.jet_algoPF1_p4->At(j1_i);
+        if(jetid_flags != 0 && !jetid_flags[j1_i]) continue; 
+        if(fabs(j1p4->Eta()) > 2.4) continue;
+        if(j1p4->DeltaR(leadpho) < dr2pho) continue;
+        if(j1p4->DeltaR(subleadpho) < dr2pho) continue;
+        j1pt=j1p4->Pt();
+	if(j1pt<ptJets_thresh) continue;
+
+	if(l.jet_algoPF1_csvBtag[j1_i]>0.244) {
+	  index_selected_btagloose.push_back(j1_i);
+	  }
+	
+	  if(j1pt>myJetspt.first) {
+            myJets.second=myJets.first;
+            myJetspt.second=myJetspt.first;
+            myJetspt.first=j1pt;
+            myJets.first=j1_i;
+	  }        else if(j1pt>myJetspt.second) {
+            myJetspt.second=j1pt;
+            myJets.second=j1_i;
+        }
+
+    }
+    
+    if( index_selected_btagloose.size()==1 ) {
+      if( index_selected_btagloose[0]!=myJets.first ) {
+	myJets.second = index_selected_btagloose[0];
+
+      } 
+ 
+   }else if (index_selected_btagloose.size()>1){
+      myJets.first = index_selected_btagloose[0];
+      myJets.second = index_selected_btagloose[1];
+    }
+
+
+    return myJets;
+
+}
+
+
 
 // Local Variables:
 // mode: c++

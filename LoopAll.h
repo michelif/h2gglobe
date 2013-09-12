@@ -577,17 +577,6 @@ int DiphotonCiCSelection( phoCiCIDLevel LEADCUTLEVEL = phoLOOSE,
                           bool split=false, int fixedvtx=-1, std::vector<bool> veto_indices=std::vector<bool>(false),
                           std::vector<int> cutsbycat=std::vector<int>(0));
 
-int DiphotonCiCSelectionEleVeto( phoCiCIDLevel LEADCUTLEVEL = phoLOOSE,
-                                  phoCiCIDLevel SUBLEADCUTLEVEL = phoLOOSE,
-                                  Float_t leadPtMin = 30,
-                                  Float_t subleadPtMin = 20,
-                                  int ncategories=6,
-                                  bool applyPtoverM=false,
-                                  float *pho_energy_array=0,
-                                  bool split=false, int fixedvtx=-1, std::vector<bool> veto_indices=std::vector<bool>(false),
-                                  bool doApplyEleVeto=false,std::vector<int> cutsbycat=std::vector<int>(0));
-
-
 
 int DiphotonMITPreSelection(Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCut, bool applyPtoverM, float *pho_energy_array=0, int fixedvtx=-1, bool split=false, bool kinonly=false, std::vector<bool> veto_indices=std::vector<bool>(false));
 int DiphotonMITPreSelection2011(Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCut, bool applyPtoverM, float *pho_energy_array=0, bool kinonly=false);
@@ -613,7 +602,6 @@ int   PhotonCiCSelectionLevel( int photon_index, int vertex_index, std::vector<s
 
 bool   PhotonMITPreSelection( int photon_index, int vertex_index,float *pho_energy_array=0);
 bool   PhotonMITPreSelection2011( int photon_index, int vertex_index,float *pho_energy_array=0);
-bool   PhotonMITPreSelectionEleVeto( int photon_index, int vertex_index, float *pho_energy_array, int applyElectronVeto );
 
 // Functions to calculate variables used in CiC selection
 Float_t DeltaRToTrack(Int_t photon_ind=-1, Int_t vtxind=-1, Float_t PtMin=1., Float_t dzmax=0.2, Float_t dxymax=0.1, int maxlosthits=0);
@@ -1220,8 +1208,7 @@ void doJetMatching(TClonesArray & reco, TClonesArray & gen, Bool_t * match_flag,
 std::pair<int, int> Select2HighestPtJets(TLorentzVector& leadpho, TLorentzVector& subleadpho, Bool_t * jetid_flags=0);
 
 vector<int> SelectJets(const TLorentzVector& leadpho, const TLorentzVector& subleadpho, Bool_t * jetid_flags=0);
-vector<int> SelectJets_looser(LoopAll& l, int diphoton_id,const TLorentzVector& leadpho, const TLorentzVector& subleadpho, Bool_t * jetid_flags=0);
-std::pair<int, int> SelectBtaggedAndHighestPtJets(LoopAll& l,int diphoton_id,const TLorentzVector& leadpho,const TLorentzVector& subleadpho, Bool_t * jetid_flags=0);
+
 
 int RescaleJetEnergy(bool force=false);
 

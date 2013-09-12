@@ -591,8 +591,7 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		float myweight=1.;
 		if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
 		
-		TTHlepevent = TTHleptonicTag2012(l, diphotonTTHlep_id, &smeared_pho_energy[0], true, eventweight, myweight);
-		
+		TTHlepevent = TTHleptonicTag2012(l, diphotonTTHlep_id, &smeared_pho_energy[0], true, eventweight, myweight,phoidMvaCut,0,true);
 		if(TTHlepevent){
 		    if(l.diphoton_id_lep != -1)diphotonTTHlep_id=l.diphoton_id_lep;
 		}
@@ -607,7 +606,9 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		float eventweight = weight * smeared_pho_weight[l.dipho_leadind[diphotonTTHhad_id]] * smeared_pho_weight[l.dipho_subleadind[diphotonTTHhad_id]] * genLevWeight;
 		float myweight=1.;
 		if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
-				TTHhadevent = TTHhadronicTag2012(l, diphotonTTHhad_id, &smeared_pho_energy[0], true, eventweight, myweight);
+		TTHhadevent = TTHhadronicTag2012(l, diphotonTTHhad_id, &smeared_pho_energy[0], true, eventweight, myweight);
+
+		
 	    }
 	}
 
@@ -621,6 +622,7 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 	            if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
 
 	            VHhadBtagevent = VHhadronicBtag2012(l, diphotonVHhadBtag_id, &smeared_pho_energy[0], true, eventweight, myweight);
+
 	        }
 	    }
 
@@ -633,6 +635,7 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 	            if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
 
 	            VHhadevent = VHhadronicTag2011(l, diphotonVHhad_id, &smeared_pho_energy[0], true, eventweight, myweight);
+
 	        }
 	    }
 
@@ -823,6 +826,12 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
                           bdtTrainingPhilosophy.c_str(),
                           phoid_mvaout_lead,phoid_mvaout_sublead);
         kinematic_bdtout = diphobdt_output;
+
+	//if we want to cut on diphobdt_output for exclusive categories
+	if(includeTTHlep && diphobdt_output<diphobdt_output_Cut_TTHlep) TTHlepevent=false;
+	if(includeTTHhad && diphobdt_output<diphobdt_output_Cut_TTHhad) TTHhadevent=false;
+	if(includeVHhadBtag && diphobdt_output<diphobdt_output_Cut_VHhadBtag) VHhadBtagevent=false;
+	if(includeVHhad && diphobdt_output<diphobdt_output_Cut_VHhad) VHhadevent=false;
 
 	float diphobdt_output_up=-1.;
 	float diphobdt_output_down=-1.;

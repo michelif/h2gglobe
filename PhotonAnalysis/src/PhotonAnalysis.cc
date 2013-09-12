@@ -106,6 +106,12 @@ PhotonAnalysis::PhotonAnalysis()  :
     removeBtagtth=false;
     createCS=false;
 
+    diphobdt_output_Cut_TTHlep=-1;
+    diphobdt_output_Cut_TTHhad=-1;
+    diphobdt_output_Cut_VHhadBtag=-1;
+    diphobdt_output_Cut_VHhad=-1;
+
+
     optimizeMVA=false;
 
     doLooseLep=false;
@@ -4295,7 +4301,7 @@ bool PhotonAnalysis::VHhadronicBtag2012(LoopAll& l, int diphotonVHhadBtag_id, fl
 }
 
 
-bool PhotonAnalysis::TTHhadronicTag2012(LoopAll& l, int diphotonTTHhad_id, float* smeared_pho_energy, bool nm1, float eventweight, float myweight,bool *jetid_flags ){
+bool PhotonAnalysis::TTHhadronicTag2012(LoopAll& l, int diphotonTTHhad_id, float* smeared_pho_energy, bool nm1, float eventweight, float myweight,bool *jetid_flags){
     //francesco 
     bool tag = false;
 
@@ -4401,7 +4407,8 @@ std::cout<<"pt: "<<p4_jet->Pt()<<" btag_loose "<<njets_btagloose<<" btag_medium 
 }
 
 
-bool PhotonAnalysis::TTHleptonicTag2012(LoopAll& l, int diphotonTTHlep_id, float* smeared_pho_energy, bool nm1, float eventweight, float myweight,bool *jetid_flags ){
+
+bool PhotonAnalysis::TTHleptonicTag2012(LoopAll& l, int diphotonTTHlep_id, float* smeared_pho_energy, bool nm1, float eventweight, float myweight,float phoidMvaCut,bool *jetid_flags, bool mvaselection ){
     //francesco 
     bool tag = false;
 
@@ -4454,8 +4461,12 @@ bool PhotonAnalysis::TTHleptonicTag2012(LoopAll& l, int diphotonTTHlep_id, float
 
 	// need to check again for d0 and dZ (couldn't before because we didn't have the vertex)                                                                            
 	if(l.ElectronMVACuts(elInd, elVtx)){
+	    if(!mvaselection){
 		diphotonTTHlep_id = l.DiphotonCiCSelection( l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtTTHlepCut,subleadEtTTHlepCut, 4,
 							    applyPtoverM, &smeared_pho_energy[0], true, -1, veto_indices);
+	    }else{
+		diphotonTTHlep_id=l.DiphotonMITPreSelection(leadEtTTHlepCut,subleadEtTTHlepCut,phoidMvaCut,applyPtoverM, &smeared_pho_energy[0],-1,true,false, veto_indices );
+	    }
 	    if(diphotonTTHlep_id!=-1)passElePhotonCuts=true;
 	}
     }

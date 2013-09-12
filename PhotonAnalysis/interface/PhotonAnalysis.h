@@ -136,7 +136,9 @@ class PhotonAnalysis : public BaseAnalysis
     TH1F *ptreweighHistQQ;
 
     bool saveDatacardTrees_;
+    double datacardTreeMass;
     bool saveSpinTrees_;
+    bool runJetsForSpin;
     bool saveVBFTrees_;
 
     //vhhadronic cuts                                                                                                                                                           
@@ -220,6 +222,7 @@ class PhotonAnalysis : public BaseAnalysis
     // Other options
     bool runStatAnalysis;
     TString puHist, puMap, puTarget;//name of pileup reweighting histogram
+    std::vector<TString> puTargets; 
 
     enum BkgCategory{promptprompt,promptfake,fakefake};
     bool keepPP, keepPF, keepFF;
@@ -329,11 +332,16 @@ class PhotonAnalysis : public BaseAnalysis
     float  myVHhad_Mjj;
     float  myVHhad_Mgg;
 
+    float myVBFDIPHObdt;
+    float myVBFDIPHOdijet;
+    
     // n-1 plots for VBF tag 2011
     float  myVBF_leadEta;
     float  myVBF_subleadEta;
     float  myVBFLeadJPt;
     float  myVBFSubJPt;
+    float  myVBFLeadJEta;
+    float  myVBFSubJEta;
     float  myVBFdEta;
     float  myVBFZep;
     float  myVBFdPhi;
@@ -374,8 +382,10 @@ class PhotonAnalysis : public BaseAnalysis
 
     bool bookDiPhoCutsInVbf;
     bool mvaVbfSelection, mvaVbfUseDiPhoPt, mvaVbfUsePhoPt;
+    bool combinedmvaVbfSelection;
     bool mvaVbfSpin;
     bool multiclassVbfSelection, vbfVsDiphoVbfSelection;
+    TString mvaVbfDiphoWeights, mvaVbfDiphoMethod;
     TString mvaVbfWeights, mvaVbfMethod;
     TString mvaVbfSpinWeights, mvaVbfSpinMethod;
     std::vector<float> mvaVbfCatBoundaries;
@@ -420,6 +430,7 @@ class PhotonAnalysis : public BaseAnalysis
     bool ClassicCatsNm1Plots(LoopAll& l, int diphoton_nm1_id, float* smeared_pho_energy, float eventweight, float myweight);
 
     // Exclusive tags
+    TMVA::Reader *tmvaVbfDiphoReader_;
 
     // ICHEP2012
     bool VBFTag2012(int & ijet1, int & ijet2, LoopAll& l, int diphoton_id,
@@ -491,8 +502,10 @@ class PhotonAnalysis : public BaseAnalysis
     // Pile-up reweighing
     void loadPuMap(const char * fname, TDirectory * dir, TH1 * target=0);
     void loadPuWeights(int typid, TDirectory * dir, TH1 * target=0);
-    float getPuWeight(int npu, int sample_type, SampleContainer* container, bool warnMe);
+    void load2DPuWeights(int typid, TDirectory* dir, std::vector<TH1*> target);
+    float getPuWeight(int npu, int sample_type, SampleContainer* container, bool warnMe, int run=0);
     TH1 * puTargetHist;
+    std::vector<TH1*> puTargetHists;
 
     std::string name_;
 
@@ -507,7 +520,7 @@ class PhotonAnalysis : public BaseAnalysis
     float ComputeEventScaleError(LoopAll& l, int ipho1, int ipho2, float & scale1, float & scale1_err, float & scale2, float & scale2_err);
     float ComputeEventSmearError(LoopAll& l, int ipho1, int ipho2, float & smear1, float & smear1_err, float & smear2, float & smear2_err);
     pair<double,double> ComputeNewSigmaMs(LoopAll &l, int ipho1, int ipho2, int ivtx, float syst_shift);
-    void saveDatCardTree(LoopAll& l, int cur_type, int category, int inc_cat, float evweight, int ipho1, int ipho2, int ivtx, TLorentzVector lead_p4, TLorentzVector sublead_p4, bool isCutBased=true, double sigmaMrv=0., double sigmaMwv=0., double sigmaMeonly=0., float vtxProb=0., string trainPhi="", float lead_id_mva=0., float sublead_id_mva=0.);
+    void saveDatCardTree(LoopAll& l, int cur_type, int category, int inc_cat, float evweight, int ipho1, int ipho2, int ivtx, TLorentzVector lead_p4, TLorentzVector sublead_p4, bool isCutBased, string proc, double sigmaMrv=0., double sigmaMwv=0., double sigmaMeonly=0., float vtxProb=0., string trainPhi="", float lead_id_mva=0., float sublead_id_mva=0.);
     
     // Save spin trees
     void saveSpinTree(LoopAll &l, int category, float evweight, TLorentzVector Higgs, TLorentzVector lead_p4, TLorentzVector sublead_p4, int ipho1, int ipho2, int diphoton_id, float vtxProb, bool isCorrectVertex);
@@ -528,6 +541,7 @@ class PhotonAnalysis : public BaseAnalysis
     void switchJetIdVertex(LoopAll &l, int ivtx);
 
     std::map<int, vector<double> > weights;
+    std::map<int, std::vector<vector<double> > > rd_weights;
     int trigCounter_;
 
     // MC smearing and correction machinery

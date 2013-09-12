@@ -47,6 +47,7 @@ StatAnalysis::StatAnalysis()  :
     doFullMvaFinalTree = false;
     doSpinAnalysis = false;
 
+    runJetsForSpin=false;
     splitwzh=false;
     sigmaMrv=0.;
     sigmaMwv=0.;
@@ -187,9 +188,8 @@ void StatAnalysis::Init(LoopAll& l)
     }
     nVHmetCategories = (int)includeVHmet;  //met at analysis step
 
-    nCategories_=(nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHlepCategories+nVHmetCategories+nVHhadBtagCategories+nTTHhadCategories+nTTHlepCategories);
-    //    nCategories_=(nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHlepCategories+nVHmetCategories);  //met at analysis step
-//    nCategories_=(nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHlepCategories);
+    nCategories_=(nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHlepCategories+nVHmetCategories);  //met at analysis step
+    //    nCategories_=(nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHlepCategories);
     if (doSpinAnalysis) nCategories_*=nCosThetaCategories;
 
     effSmearPars.categoryType = effPhotonCategoryType;
@@ -369,8 +369,6 @@ void StatAnalysis::Init(LoopAll& l)
 		    bkgPolOrderByCat.push_back(2);
 	        } else if(i<nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHlepCategories){
 		    bkgPolOrderByCat.push_back(1);
-	        } else if(i<nInclusiveCategories_+nVBFCategories+nVHhadCategories+nVHhadBtagCategories+nVHlepCategories+nTTHhadCategories+nTTHlepCategories){
-		    bkgPolOrderByCat.push_back(3);
 		}
 	}
     }
@@ -651,7 +649,7 @@ bool StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
     nevents+=1.;
 
     //PU reweighting
-    double pileupWeight=getPuWeight( l.pu_n, cur_type, &(l.sampleContainer[l.current_sample_index]), jentry == 1);
+    double pileupWeight=getPuWeight( l.pu_n, cur_type, &(l.sampleContainer[l.current_sample_index]), jentry == 1, l.run);
     sumwei +=pileupWeight;
     weight *= pileupWeight;
     sumev  += weight;
@@ -971,7 +969,7 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
 	        l.RescaleJetEnergy();
 	    }
 
-	    if(includeVBF) {
+        if(includeVBF || runJetsForSpin) {
 	        diphotonVBF_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtVBFCut, subleadEtVBFCut, 4,false, &smeared_pho_energy[0], true);
 
             if(diphotonVBF_id!=-1){
@@ -983,6 +981,7 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
 	        	    VBFTag2011(l, diphotonVBF_id, &smeared_pho_energy[0], true, eventweight, myweight) :
 	        	    VBFTag2012(vbfIjet1, vbfIjet2, l, diphotonVBF_id, &smeared_pho_energy[0], true, eventweight, myweight) )
 	            ;
+                if (runJetsForSpin) VBFevent=false;
 	        }
         }
 
@@ -1086,31 +1085,8 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
         TLorentzVector lead_p4, sublead_p4, Higgs;
         float lead_r9, sublead_r9;
         TVector3 * vtx;
-	if(includeVHlep){
-	    if(( (includeVHlep && (VHelevent || VHmuevent))) && !(includeVBF&&VBFevent) ) {
-		if(VHmuevent){
-	            fillDiphoton(lead_p4, sublead_p4, Higgs, lead_r9, sublead_r9, vtx, &smeared_pho_energy[0], l, l.dipho_leadind[diphoton_id],  l.dipho_subleadind[diphoton_id], 0);  // use default vertex for the muon tag
-		} else if(VHelevent){
-		    if(nElectronCategories==2){
-			if(PADEBUG) std::cout<<"nElectronCategories "<<nElectronCategories<<std::endl;
-	                fillDiphoton(lead_p4, sublead_p4, Higgs, lead_r9, sublead_r9, vtx, &smeared_pho_energy[0], l, leadpho_ind, subleadpho_ind, elVtx);  // use elVtx for ElectronTag2012B
-			if(PADEBUG) std::cout<<"post fillDiphoton Higgs.Pt() "<<Higgs.Pt()<<std::endl;
-		    } else {
-			fillDiphoton(lead_p4, sublead_p4, Higgs, lead_r9, sublead_r9, vtx, &smeared_pho_energy[0], l, l.dipho_leadind[diphoton_id],  l.dipho_subleadind[diphoton_id], 0);  // use default vertex for old electron tag
-		    }
-		}
-	    } else {
-	        fillDiphoton(lead_p4, sublead_p4, Higgs, lead_r9, sublead_r9, vtx, &smeared_pho_energy[0], l, diphoton_id);
-	    }
-	}
-	if(includeVHlepPlusMet){
-	    if(( (includeVHlepPlusMet && (VHlep1event || VHlep2event))) && !(includeVBF&&VBFevent) ) {
-		if(VHlep1event){
-	            fillDiphoton(lead_p4,sublead_p4,Higgs,lead_r9,sublead_r9,vtx,&smeared_pho_energy[0],l,l.dipho_leadind[diphoton_id],l.dipho_subleadind[diphoton_id],0); 
-		} else if(VHlep2event){
-		    fillDiphoton(lead_p4,sublead_p4,Higgs,lead_r9,sublead_r9,vtx,&smeared_pho_energy[0],l,l.dipho_leadind[diphoton_id],l.dipho_subleadind[diphoton_id],0); 
-		}
-	    } else {
+        
+        // should call this guy once by setting vertex above
 	        fillDiphoton(lead_p4, sublead_p4, Higgs, lead_r9, sublead_r9, vtx, &smeared_pho_energy[0], l, diphoton_id);
 	    }
 	}
@@ -1168,7 +1144,7 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
 
         // save trees for unbinned datacards
         int inc_cat = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,R9CatBoundary,nPtCategories,nVtxCategories,l.vtx_std_n);
-        if (!isSyst && cur_type<0 && saveDatacardTrees_) saveDatCardTree(l,cur_type,category, inc_cat, evweight, diphoton_index.first,diphoton_index.second,l.dipho_vtxind[diphoton_id],lead_p4,sublead_p4,true);
+        if (!isSyst && cur_type<0 && saveDatacardTrees_ && TMath::Abs(datacardTreeMass-l.signalNormalizer->GetMass(cur_type))<0.001) saveDatCardTree(l,cur_type,category, inc_cat, evweight, diphoton_index.first,diphoton_index.second,l.dipho_vtxind[diphoton_id],lead_p4,sublead_p4,true,GetSignalLabel(cur_type,l));
         
         float vtx_mva  = l.vtx_std_evt_mva->at(diphoton_id);
         float vtxProb   = 1.-0.49*(vtx_mva+1.0); /// should better use this: vtxAna_.setPairID(diphoton_id); vtxAna_.vertexProbability(vtx_mva); PM
@@ -1458,12 +1434,14 @@ void StatAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float 
         l.FillTree("bdtoutput",diphotonMVA,"full_mva_trees");
         l.FillTree("category",category,"full_mva_trees");
         l.FillTree("weight",weight,"full_mva_trees");
+        /* -- for cut based variant --
         l.FillTree("lead_r9",l.pho_r9[lead_ind],"full_mva_trees");
         l.FillTree("sublead_r9",l.pho_r9[sublead_ind],"full_mva_trees");
         l.FillTree("lead_eta",((TVector3*)l.sc_xyz->At(l.pho_scind[lead_ind]))->Eta(),"full_mva_trees");
         l.FillTree("sublead_eta",((TVector3*)l.sc_xyz->At(l.pho_scind[sublead_ind]))->Eta(),"full_mva_trees");
         l.FillTree("lead_phi",((TVector3*)l.sc_xyz->At(l.pho_scind[lead_ind]))->Phi(),"full_mva_trees");
         l.FillTree("sublead_phi",((TVector3*)l.sc_xyz->At(l.pho_scind[sublead_ind]))->Phi(),"full_mva_trees");
+         */
     }
 
     if (cur_type == 0 ) {
@@ -1599,7 +1577,7 @@ void StatAnalysis::FillRooContainerSyst(LoopAll& l, const std::string &name, int
 	    l.FillTree(Form("weight_%s_Up",name.c_str()),weights[1],"full_mva_trees");
 	    l.FillTree(Form("category_%s_Down",name.c_str()),categories[0],"full_mva_trees");
 	    l.FillTree(Form("category_%s_Up",name.c_str()),categories[1],"full_mva_trees");
-        /*
+            /* -- for cut based variant -- 
         l.FillTree(Form("lead_r9_%s_Down",name.c_str()),l.pho_r9[lead_ind],"full_mva_trees");
         l.FillTree(Form("lead_r9_%s_Up",name.c_str()),l.pho_r9[lead_ind],"full_mva_trees");
         l.FillTree(Form("sublead_r9_%s_Down",name.c_str()),l.pho_r9[sublead_ind],"full_mva_trees");

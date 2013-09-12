@@ -965,11 +965,11 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
 	    }
 
 	    // VBF+hadronic VH
-	    if((includeVBF || includeVHhad|| includeVHhadBtag || includeTTHhad || includeTTHlep )&&l.jet_algoPF1_n>1 && !isSyst /*avoid rescale > once*/) {
+	    if((includeVBF || includeVHhad|| includeVHhadBtag || includeTTHhad || includeTTHlep || runJetsForSpin)&&l.jet_algoPF1_n>1 && !isSyst /*avoid rescale > once*/) {
 	        l.RescaleJetEnergy();
 	    }
 
-        if(includeVBF || runJetsForSpin) {
+        if(includeVBF || runJetsForSpin|| runJetsForSpin) {
 	        diphotonVBF_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtVBFCut, subleadEtVBFCut, 4,false, &smeared_pho_energy[0], true);
 
             if(diphotonVBF_id!=-1){

@@ -3973,69 +3973,6 @@ std::pair<int, int> LoopAll::Select2HighestPtJets(TLorentzVector& leadpho, TLore
 
 
 
-vector<int> LoopAll::SelectJets(const TLorentzVector& leadpho, const TLorentzVector& subleadpho, Bool_t * jetid_flags)
-{
-  float dr2pho = 0.5;
-  TLorentzVector* j1p4;
-  TLorentzVector* j2p4;
-  float j1pt=-1.;
-  float j2pt=-1.;
-  vector<int> myJets;
-  myJets.clear();
-
-  for(int j1_i=0; j1_i<jet_algoPF1_n; j1_i++){
-    j1p4 = (TLorentzVector*) jet_algoPF1_p4->At(j1_i);
-    if(GFDEBUG) std::cout<<"jet "<<j1_i<<std::endl;
-    if(GFDEBUG) std::cout<<"passing pu id?"<<std::endl;
-    //       if(jetid_flags != 0 && !jetid_flags[j1_i]) continue; 
-    if(GFDEBUG) std::cout<<"within eta 4.7?"<<std::endl;
-    if(fabs(j1p4->Eta()) > 4.7) continue;
-    if(GFDEBUG) std::cout<<"close to leadpho?"<<std::endl;
-    if(j1p4->DeltaR(leadpho) < dr2pho) continue;
-    if(GFDEBUG) std::cout<<"close to subleadpho?"<<std::endl;
-    if(j1p4->DeltaR(subleadpho) < dr2pho) continue;
-    j1pt=j1p4->Pt();
-    if(j1pt < 25) continue;
-    if(GFDEBUG) std::cout<<"passing all single jet requirements with pt"<<j1pt<<std::endl;
-    myJets.push_back(j1_i);
-  }
-
-  // now sort the vector by jet pt
-  int tmp = myJets[0];
-  int max = myJets[0];
-  float maxpt = -1.;
-  if(GFDEBUG) cout << "jet_algoPF1_n= "<< jet_algoPF1_n << "\tmyJets.size()= " << myJets.size() << endl;
-  for(int i=0;i<(int)myJets.size()-1;i++) {
-    j1p4 = (TLorentzVector*) jet_algoPF1_p4->At(myJets[i]);
-    j1pt = (float)j1p4->Pt();
-    max = i;
-    maxpt = j1pt;
-    if(GFDEBUG) cout << "i= " << i << "\tmyJets[i]= " << myJets[i] << "\tj1pt= " << j1pt << endl;
-    for(int x=i+1; x<(int)myJets.size(); x++) {
-      j2p4 = (TLorentzVector*) jet_algoPF1_p4->At(myJets[x]);
-      j2pt = (float)j2p4->Pt();
-      if(GFDEBUG) cout << "\tx= " << x << "\tmyJets[x]= " << myJets[x] << "j2pt= " << j2pt << endl;
-      if(j2pt > maxpt) {
-        max = x;
-	maxpt = j2pt;
-	if(GFDEBUG) cout << "## New Max found: max= " << max << "\tmyJets[max]= " << myJets[max] << endl;
-	
-      }
-    }
-    tmp = myJets[i];
-    myJets[i] = myJets[max];
-    myJets[max] = tmp;
-  }
-  if(GFDEBUG)
-    {
-      for(int i=0 ; i< myJets.size() ; i++)
-	{
-	  j1p4 = (TLorentzVector*) jet_algoPF1_p4->At(myJets[i]);
-	  cout << "myJets[" << i << "]= " << myJets[i] << "\tj1p4->Pt()= " << j1p4->Pt() << endl;
-	}
-    }
-  return myJets;
-}
 
 
 

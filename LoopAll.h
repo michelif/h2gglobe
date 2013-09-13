@@ -172,7 +172,6 @@ class LoopAll {
   Int_t        current_sample_index; //current file
   // global parameters
   Int_t tot_events, sel_events, type, version, reductions;
-  Int_t Entries_;
   bool createCS_;
 
 
@@ -1219,9 +1218,7 @@ int MuonSelection2012(TLorentzVector& pho1, TLorentzVector& pho2, int vtxind);
 bool MuonPhotonCuts2012(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu);
 //HCP2012
 int MuonSelection2012B(float muptcut=20.);
-int GetNMuonsPassingSelection2012B(float muptcut,TLorentzVector& pho1, TLorentzVector& pho2,float deltaRcut);
-bool MuonPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu);
-bool MuonPhotonCuts2012B_2(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu,float deltaRcut);
+bool MuonPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector* thismu,float deltaRcut=1.0);
 bool MuonLooseID2012(int indmu);
 bool MuonTightID2012(int indmu, int vtxind=-1);
 bool MuonIsolation2012(int indmu, float mupt, bool isTight=false);
@@ -1237,13 +1234,10 @@ bool ElectronTightEGammaID(int electronindex, int vertexindex=-1);
 //HCP2012
 int ElectronSelectionMVA2012(float elptcut=20.);
 std::vector<int> GetIndexesElectronsPassingSelectionMVA2012(float elptcut=20.);
-int GetNelectronsPassingSelectionMVA2012(float elptcut,TLorentzVector& pho1, TLorentzVector& pho2,float deltaRPholep_cut);
 bool ElectronMVACuts(int el_ind, int vtx_ind=-1);
-bool ElectronPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector& ele, bool includeVHlepPlusMet=false);
-bool ElectronPhotonCuts2012B_2(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector& ele,float deltaRcut, bool doMinvCut=false);
+bool ElectronPhotonCuts2012B(TLorentzVector& pho1, TLorentzVector& pho2, TLorentzVector& ele, bool includeVHlepPlusMet=false,float deltaRcut=1.0);
 int FindElectronVertex(int el_ind);
-void PhotonsToVeto(TLorentzVector* veto_p4, float drtoveto, std::vector<bool>& vetos, bool drtotkveto);
-void PhotonsToVeto_2(TLorentzVector* veto_p4, float drtoveto,float drgsftoveto, std::vector<bool>& vetos, bool drtotkveto);
+void PhotonsToVeto(TLorentzVector* veto_p4, float drtoveto, std::vector<bool>& vetos, bool drtotkveto,float drgsftoveto=1.0);
 
 int ElectronSelectionMVA2012_nocutOnMVA(float elptcut);
 bool ElectronMVACuts_nocutOnMVA(int el_ind, int vtx_ind);

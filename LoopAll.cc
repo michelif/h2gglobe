@@ -628,7 +628,6 @@ void LoopAll::Loop(Int_t a) {
   Int_t nentries = 0;
   if(fChain) 
     nentries = Int_t(fChain->GetEntriesFast());
-  Entries_=nentries;
 
 
   Int_t nbytes = 0, nb = 0;

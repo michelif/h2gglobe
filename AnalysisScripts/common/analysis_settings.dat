@@ -24,34 +24,28 @@ mvaVbfCatBoundaries=1.,0.985,0.93
 sigPointsToBook=105,110,115,120,125,130,135,140,145,150,124,126
 
 ## Hadronic TTH tag
-includeTTHhad=1
+includeTTHhad=0
 leadEtTTHhadCut=60
 subleadEtTTHhadCut=25
 
 ## Leptonic TTH tag
-includeTTHlep=1
+includeTTHlep=0
 leadEtTTHlepCut=60
 subleadEtTTHlepCut=25
 
 	
 ## Hadronic V tag
-includeVHhad=1
+includeVHhad=0
 nVHhadEtaCategories=1
 leadEtVHhadCut=60
 subleadEtVHhadCut=25
 
 ## Hadronic V tag + btag
-includeVHhadBtag=1
+includeVHhadBtag=0
 leadEtVHhadCut=60
 subleadEtVHhadCut=25
 ptjet_loosecut=25
 
-
-## Hadronic V tag
-includeVHhad=1
-nVHhadEtaCategories=1
-leadEtVHhadCut=60
-subleadEtVHhadCut=25
 
 ## Lepton tag
 includeVHlep=0

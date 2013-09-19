@@ -25,14 +25,16 @@ else: outfile=open(argv[1],'w')
 
 tfilelist = []
 for i in range(len(filelist)):
-    print filelist[i]
+#    print filelist[i]
     filelist[i]=filelist[i].strip("\n")
     tfilelist.append(ROOT.TFile.Open("root://eoscms/"+filelist[i]))
-    if tfilelist[i].Get("global_variables")!=None:
-        global_variables = tfilelist[i].Get("global_variables")
-        global_variables.GetEntry(0)
-        numevents = global_variables.processedEvents
-        outfile.write("root://eoscms/"+filelist[i]+"="+str(numevents)+"\n")
-
+    try:
+        if tfilelist[i].Get("global_variables")!=None:
+            global_variables = tfilelist[i].Get("global_variables")
+            global_variables.GetEntry(0)
+            numevents = global_variables.processedEvents
+            outfile.write("root://eoscms/"+filelist[i]+"="+str(numevents)+"\n")
+    except:
+        print "failed to open",filelist[i]
 outfile.close()
 for file in tfilelist: file.Close()

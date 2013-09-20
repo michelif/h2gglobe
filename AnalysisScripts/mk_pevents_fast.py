@@ -23,12 +23,13 @@ if len(argv)==2:
     else: outfile=open(argv[1][:argv[1].rfind("/")+1]+"tmp_"+argv[1][argv[1].rfind("/")+1:]+".pevents",'w')
 else: outfile=open(argv[1],'w')
 
+
 tfilelist = []
 for i in range(len(filelist)):
-#    print filelist[i]
+    #print filelist[i]
     filelist[i]=filelist[i].strip("\n")
-    tfilelist.append(ROOT.TFile.Open("root://eoscms/"+filelist[i]))
     try:
+        tfilelist.append(ROOT.TFile.Open("root://eoscms/"+filelist[i]))
         if tfilelist[i].Get("global_variables")!=None:
             global_variables = tfilelist[i].Get("global_variables")
             global_variables.GetEntry(0)

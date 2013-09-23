@@ -59,10 +59,14 @@ costhetastar_0tag_cut=0.50
 ptjet_0tag_cut=40.
 
 ## Hadronic V tag + btag
-includeVHhadBtag=0
+includeVHhadBtag=1
 leadEtVHhadCut=60
 subleadEtVHhadCut=25
 ptjet_loosecut=25
+diphobdt_output_Cut_VHhadBtag=-1
+ptgg_btag_cut=117.
+costhetastar_btag_cut=0.56
+ptjet_btag_cut=27.
 
 
 ## Lepton tag

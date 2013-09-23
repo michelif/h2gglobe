@@ -6,8 +6,6 @@
 #include <stdio.h>
 
 #define PADEBUG 0
-#define FMDEBUG 0
-#define FMDEBUG_1 0
 
 using namespace std;
 
@@ -900,13 +898,13 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
 	    }
 
 	    // Exclusive Modes
-	    int diphotonVBF_id = -1;
-	    int diphotonVHhad_id = -1;
-	    int diphotonVHhadBtag_id = -1;
-	    int diphotonTTHhad_id = -1;
-	    int diphotonTTHlep_id = -1;
-	    int diphotonVHlep_id = -1;
-	    int diphotonVHmet_id = -1; //met at analysis step
+	diphotonVBF_id = -1;
+	diphotonVHhad_id = -1;
+	diphotonVHhadBtag_id = -1;
+	diphotonTTHhad_id = -1;
+	diphotonTTHlep_id = -1;
+	diphotonVHlep_id = -1;
+	diphotonVHmet_id = -1; //met at analysis step
 	    VHmuevent = false;
 	    VHelevent = false;
 	    VHlep1event = false;
@@ -1037,13 +1035,6 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
 	            if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
 
 	            TTHlepevent = TTHleptonicTag2012(l, diphotonTTHlep_id, &smeared_pho_energy[0], true, eventweight, myweight);
-
-		    if(TTHlepevent){
-			//			std::cout<<diphotonTTHlep_id<<" "<<l.diphoton_id_lep<<"||";
-			if(l.diphoton_id_lep != -1)diphotonTTHlep_id=l.diphoton_id_lep;
-		    }
-
-
 	        }
 	    }
 
@@ -1606,7 +1597,7 @@ void StatAnalysis::computeExclusiveCategory(LoopAll & l, int & category, std::pa
 	category=nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories +  nVHlepCategories +  nVHmetCategories;
     }else if(TTHhadevent) {
 	category=nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories +  nVHlepCategories + nVHmetCategories+nTTHlepCategories;
-	if(FMDEBUG)
+	if(PADEBUG)
 	cout<<"TTHhad: "<<category<<endl;
     }else if(VHmuevent || VHlep1event) {
 	category=nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories;
@@ -1700,11 +1691,9 @@ void StatAnalysis::fillControlPlots(const TLorentzVector & lead_p4, const  TLore
     float mass = Higgs.M();
     if(category!=-10){  // really this is nomva cut but -1 means all together here
         if( category>=0 ) {
-	    if(category<=8){
 		fillControlPlots( lead_p4, sublead_p4, Higgs, lead_r9, sublead_r9, diphoton_id, -1, isCorrectVertex, evweight,
 			      vtx, l, muVtx, mu_ind, elVtx, el_ind, diphobdt_output );
 	    }
-        }
         l.FillHist("all_mass",category+1, Higgs.M(), evweight);
         if( mass>=massMin && mass<=massMax  ) {
             l.FillHist("diphobdt",category+1, diphobdt_output, evweight);
@@ -1784,10 +1773,7 @@ void StatAnalysis::fillControlPlots(const TLorentzVector & lead_p4, const  TLore
                     float sampleweight = l.sampleContainer[l.current_sample_index].weight();
                     if(evweight*sampleweight!=0) myweight=evweight/sampleweight;
                     l.FillCutPlots(category+1,1,"_sequential",evweight,myweight);
-		    if(category<=8){
-			//			if( sublead_r9 > 0.9 ) { l.FillCutPlots(category+1+nCategories_,1,"_sequential",evweight,myweight); }
-			if( sublead_r9 > 0.9 ) { l.FillCutPlots(category+1+8,1,"_sequential",evweight,myweight); }
-		    }
+		    if( sublead_r9 > 0.9 ) { l.FillCutPlots(category+1+nCategories_,1,"_sequential",evweight,myweight); }
                 }
             }
 	    l.FillHist("rho",category+1,l.rho_algo1,evweight);

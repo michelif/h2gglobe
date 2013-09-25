@@ -108,17 +108,22 @@ void makeBkgPlotsGeneric(std::string filebkg, std::string filesig="", const int 
 
 	std::string * labels;
 	
-	std::string baselinelabels[9] = { "Both photons in barrel, R_{9}^{min} > 0.94"
+	std::string baselinelabels[13] = { "Both photons in barrel, R_{9}^{min} > 0.94"
 					  ,"Both photons in barrel, R_{9}^{min} < 0.94"
 					  ,"One or more photons in endcap, R_{9}^{min} > 0.94"
 					  ,"One or more photons in endcap, R_{9}^{min} < 0.94"
-		        ,"Dijet-tagged class BDT_{VBF} >= 0.985"
-		        ,"Dijet-tagged class 0.93 <= BDT_{VBF} < 0.985"
-            ,"Muon-tagged class"
-            ,"Electron-tagged class"
-            ,"MET-tagged class"
+					  ,"Dijet-tagged class BDT_{VBF} >= 0.985"
+					  ,"Dijet-tagged class 0.93 <= BDT_{VBF} < 0.985"
+					  ,"Muon-tagged class"
+					  ,"Electron-tagged class"
+					  ,"MET-tagged class"
+					  ,"ttH Leptonic"
+					  ,"ttH Hadronic"
+					  ,"VH Hadronic btag"
+					  ,"VH Hadronic 0tag"
+
 	};
-	std::string massfactlabels[9] = { 
+	std::string massfactlabels[13] = { 
 		"BDT_{#gamma#gamma} >= 0.91"
 		,"0.79  <= BDT_{#gamma#gamma} < 0.91"
 		,"0.49 <= BDT_{#gamma#gamma} < 0.79"
@@ -128,6 +133,10 @@ void makeBkgPlotsGeneric(std::string filebkg, std::string filesig="", const int 
 		,"Muon-tagged class"
 		,"Electron-tagged class"
 		,"MET-tagged class"
+		,"ttH Leptonic"
+		,"ttH Hadronic"
+		,"VH Hadronic btag"
+		,"VH Hadronic 0tag"
 	};
   std::string spinlabels[20] = {
     "#splitline{|#eta|_{max} < 1.44, R_{9min} > 0.94}{|cos(#theta*)| < 0.2}",

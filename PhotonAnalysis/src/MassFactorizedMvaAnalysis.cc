@@ -638,11 +638,9 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 	    }
 
 
-    
-	if(includeTTHlep&&TTHlepevent) {
-            diphoton_id = diphotonTTHlep_id;
-        } else if(includeTTHhad&&TTHhadevent) {
-	    diphoton_id = diphotonTTHhad_id;
+	// priority of analysis: TTH leptonic, TTH hadronic, lepton tag, vbf,vh met, vhhad btag, vh had 0tag, 
+	if (includeTTHlep&&TTHlepevent) {
+	    diphoton_id = diphotonTTHlep_id;
 	} else if(includeVHlep&&VHmuevent){
             diphoton_id = diphotonVHlep_id;
         } else if (includeVHlep&&VHelevent){
@@ -651,16 +649,19 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 	    diphoton_id = diphotonVHlep_id;
 	} else if (includeVHlepPlusMet&&VHlep2event){
 	    diphoton_id = diphotonVHlep_id;
-        } else if(includeVBF&&VBFevent) {
-            diphoton_id = diphotonVBF_id;
-        } else if(includeVHmet&&VHmetevent) {
-            diphoton_id = diphotonVHmet_id;
-        }else if(includeVHhadBtag&&VHhadBtagevent) {
+	} else if(includeVBF&&VBFevent) {
+	    diphoton_id = diphotonVBF_id;
+	} else if(includeVHmet&&VHmetevent) {
+	    diphoton_id = diphotonVHmet_id;
+	} else if(includeTTHhad&&TTHhadevent) {
+	    diphoton_id = diphotonTTHhad_id;
+	} else if(includeVHhadBtag&&VHhadBtagevent) {
 	    diphoton_id = diphotonVHhadBtag_id;
 	} else if(includeVHhad&&VHhadevent) {
 	    diphoton_id = diphotonVHhad_id;
 	} 
-    }
+	// End exclusive mode selection    
+     }
     // if we selected any di-photon, compute the Higgs candidate kinematics
     // and compute the event category
     if (PADEBUG) std::cout << "Found a Diphoton , diphoton ID " <<diphoton_id << std::endl; 

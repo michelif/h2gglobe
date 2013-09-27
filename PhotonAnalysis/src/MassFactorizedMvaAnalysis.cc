@@ -692,8 +692,8 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
         }
 
 	if(includeTTHlep){
-	    //sistemare
-	    TTHlepevent = TTHleptonicTag2012(l, diphotonTTHlep_id, &smeared_pho_energy[0],phoidMvaCut,0,true,doDiphoMvaUpFront);
+
+	    TTHlepevent = TTHleptonicTag2012(l, diphotonTTHlep_id, &smeared_pho_energy[0],phoidMvaCut,0,true,doDiphoMvaUpFront,vetodipho,kinonly);
 	   
 	}
 

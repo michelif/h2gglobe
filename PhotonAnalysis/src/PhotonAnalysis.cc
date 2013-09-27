@@ -4386,7 +4386,9 @@ bool PhotonAnalysis::VHhadronicBtag2012(LoopAll& l, int diphotonVHhadBtag_id, fl
 		 <<" ptjet1="<<(*jet1).Pt()<<" ptjet2="<<(*jet2).Pt()<< " mjj"<<dijet.M()<<endl;
     }
 
-
+    if(doDiphoMvaUpFront && mvaselection){
+        if(l.dipho_BDT<diphobdt_output_Cut_TTHlep) tag=false;
+    }
 
     return tag;
 }
@@ -4499,7 +4501,7 @@ std::cout<<"pt: "<<p4_jet->Pt()<<" btag_loose "<<njets_btagloose<<" btag_medium 
 
 
 
-bool PhotonAnalysis::TTHleptonicTag2012(LoopAll& l, int diphotonTTHlep_id, float* smeared_pho_energy, bool nm1, float eventweight, float myweight,float phoidMvaCut,bool *jetid_flags, bool mvaselection ){
+bool PhotonAnalysis::TTHleptonicTag2012(LoopAll& l, int& diphotonTTHlep_id, float* smeared_pho_energy, float phoidMvaCut,bool *jetid_flags, bool mvaselection,bool doDiphoMvaUpFront){
     //francesco 
     bool tag = false;
 

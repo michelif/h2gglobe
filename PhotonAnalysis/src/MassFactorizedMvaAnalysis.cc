@@ -692,15 +692,9 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
         }
 
 	if(includeTTHlep){
-            diphotonTTHlep_id=l.DiphotonMITPreSelection(leadEtTTHlepCut,subleadEtTTHlepCut,phoidMvaCut,applyPtoverM, 
-                                                        &smeared_pho_energy[0], vetodipho, kinonly );
-            if(diphotonTTHlep_id!=-1){
-		float eventweight = weight * smeared_pho_weight[l.dipho_leadind[diphotonTTHlep_id]] * smeared_pho_weight[l.dipho_subleadind[diphotonTTHlep_id]] * genLevWeight;
-		float myweight=1.;
-		if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
-                TTHlepevent = TTHleptonicTag2012(l, diphotonTTHlep_id, &smeared_pho_energy[0], true, eventweight, myweight,
-                                                    phoidMvaCut,0,true);
-	    }
+	    //sistemare
+	    TTHlepevent = TTHleptonicTag2012(l, diphotonTTHlep_id, &smeared_pho_energy[0],phoidMvaCut,0,true,doDiphoMvaUpFront);
+	   
 	}
 
         if(includeTTHhad) {

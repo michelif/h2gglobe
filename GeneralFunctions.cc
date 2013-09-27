@@ -3020,7 +3020,8 @@ int LoopAll::DiphotonMITPreSelection(Float_t leadPtMin, Float_t subleadPtMin, Fl
         }
         
         if(vetodipho && dipho_sel[idipho]!=true) continue;
-	if(dipho_BDT[idipho]<dipho_BDT_Cut)continue;
+        if(dipho_BDT[idipho]<dipho_BDT_Cut) continue;
+
         float sumpt = DiphotonMITPreSelectionPerDipho(idipho, leadPtMin, subleadPtMin, phoidMvaCut, applyPtoverM, pho_energy_array, fixedvtx, split, kinonly, veto_indices);
 
         if(sumpt!=-99){

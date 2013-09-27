@@ -867,7 +867,7 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
 	    float leadptcut=33.;
 	    float subleadptcut=25.;
 	    //	    cout<<"[DEBUG]:before"<<diphoton_id<<endl;
-	    diphoton_id=l.DiphotonMITPreSelection(leadptcut,subleadptcut,-0.2,0, &smeared_pho_energy[0],false,false,0,false);
+	    diphoton_id=l.DiphotonMITPreSelection(leadptcut,subleadptcut,-0.2,0, &smeared_pho_energy[0],false,false,-100,0,false);
 	    //	    cout<<"[DEBUG]:after"<<diphoton_id<<endl;
 
 	    string bdtTrainingPhilosophy="MIT";
@@ -993,56 +993,20 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
         }
 
         if(includeVHhad) {
-            diphotonVHhad_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtVHhadCut, subleadEtVHhadCut, 4,false, &smeared_pho_energy[0], true);
-
-            if(diphotonVHhad_id!=-1){
-                float eventweight = weight * smeared_pho_weight[l.dipho_leadind[diphotonVHhad_id]] * smeared_pho_weight[l.dipho_subleadind[diphotonVHhad_id]] * genLevWeight;
-                float myweight=1.;
-                if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
-
-                VHhadevent = VHhadronicTag2011(l, diphotonVHhad_id, &smeared_pho_energy[0], true, eventweight, myweight);
-            }
+            VHhadevent = VHhadronicTag2011(l, diphotonVHhad_id, &smeared_pho_energy[0]);
         }
 
         if(includeVHhadBtag) {
-	        diphotonVHhadBtag_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtVHhadBtagCut, subleadEtVHhadBtagCut, 4,false, &smeared_pho_energy[0], true);
-
-            if(diphotonVHhadBtag_id!=-1){
-	            float eventweight = weight * smeared_pho_weight[l.dipho_leadind[diphotonVHhadBtag_id]] * smeared_pho_weight[l.dipho_subleadind[diphotonVHhadBtag_id]] * genLevWeight;
-	            float myweight=1.;
-	            if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
-
-	            VHhadBtagevent = VHhadronicBtag2012(l, diphotonVHhadBtag_id, &smeared_pho_energy[0], true, eventweight, myweight);
-	        }
-	    }
-
-
-
+            VHhadBtagevent = VHhadronicBtag2012(l, diphotonVHhadBtag_id, &smeared_pho_energy[0]);
+        }
 
         if(includeTTHhad) {
-	        diphotonTTHhad_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtTTHhadCut, subleadEtTTHhadCut, 4,false, &smeared_pho_energy[0], true);
-
-            if(diphotonTTHhad_id!=-1){
-	            float eventweight = weight * smeared_pho_weight[l.dipho_leadind[diphotonTTHhad_id]] * smeared_pho_weight[l.dipho_subleadind[diphotonTTHhad_id]] * genLevWeight;
-	            float myweight=1.;
-	            if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
-
-	            TTHhadevent = TTHhadronicTag2012(l, diphotonTTHhad_id, &smeared_pho_energy[0], true, eventweight, myweight);
-	        }
-	    }
-
+	    TTHhadevent = TTHhadronicTag2012(l, diphotonTTHhad_id, &smeared_pho_energy[0]);
+	}
 
         if(includeTTHlep) {
-	        diphotonTTHlep_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtTTHlepCut, subleadEtTTHlepCut, 4,false, &smeared_pho_energy[0], true);
-
-            if(diphotonTTHlep_id!=-1){
-	            float eventweight = weight * smeared_pho_weight[l.dipho_leadind[diphotonTTHlep_id]] * smeared_pho_weight[l.dipho_subleadind[diphotonTTHlep_id]] * genLevWeight;
-	            float myweight=1.;
-	            if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
-
-	            TTHlepevent = TTHleptonicTag2012(l, diphotonTTHlep_id, &smeared_pho_energy[0], true, eventweight, myweight);
-	        }
-	    }
+	    TTHlepevent = TTHleptonicTag2012(l, diphotonTTHlep_id, &smeared_pho_energy[0]);
+	}
 
 	// priority of analysis: TTH leptonic, TTH hadronic, lepton tag, vbf,vh met, vhhad btag, vh had 0tag, 
 	if (includeTTHlep&&TTHlepevent) {
@@ -1846,7 +1810,7 @@ void StatAnalysis::fillSignalEfficiencyPlots(float weight, LoopAll & l)
 {
     //Fill histograms to use as denominator (kinematic pre-selection only) and numerator (selection applied)
     //for single photon ID efficiency calculation.
-    int diphoton_id_kinpresel = l.DiphotonMITPreSelection(leadEtCut,subleadEtCut,-1.,applyPtoverM, &smeared_pho_energy[0],false,true,-1,false );
+    int diphoton_id_kinpresel = l.DiphotonMITPreSelection(leadEtCut,subleadEtCut,-1.,applyPtoverM, &smeared_pho_energy[0],false,true,-100,-1,false );
     if (diphoton_id_kinpresel>-1) {
 
         TLorentzVector lead_p4, sublead_p4, Higgs;

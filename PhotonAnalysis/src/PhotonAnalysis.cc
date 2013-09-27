@@ -12,6 +12,8 @@
 #include "JetAnalysis/interface/JetHandler.h"
 #include "CMGTools/External/interface/PileupJetIdentifier.h"
 
+#include "TH2F.h"
+
 #define PADEBUG 0
 
 using namespace std;
@@ -2034,10 +2036,10 @@ bool PhotonAnalysis::SelectEventsReduction(LoopAll& l, int jentry)
         l.dipho_n = 0;
         for(size_t id=0; id<diphotons.size(); ++id ) {
 
-	    if( l.dipho_n >= MAX_DIPHOTONS-1 ) { continue; }
+            if( l.dipho_n >= MAX_DIPHOTONS-1 ) { continue; }
             int ipho1 = diphotons[id].first;
             int ipho2 = diphotons[id].second;
-
+            
             if(PADEBUG)        cout << " SelectEventsReduction going to fill photon info " << endl;
             PhotonInfo pho1=l.fillPhotonInfos(ipho1,vtxAlgoParams.useAllConversions,&corrected_pho_energy[0]);
             PhotonInfo pho2=l.fillPhotonInfos(ipho2,vtxAlgoParams.useAllConversions,&corrected_pho_energy[0]);
@@ -2054,13 +2056,13 @@ bool PhotonAnalysis::SelectEventsReduction(LoopAll& l, int jentry)
                 std::swap( diphotons[id].first,  diphotons[id].second );
                 std::swap( lead_p4,  sublead_p4 );
             }
-
+            
             if( lead_p4.Pt() < presel_scet1 || sublead_p4.Pt() < presel_scet2 ||
                 fabs(lead_p4.Eta()) > presel_maxeta || fabs(sublead_p4.Eta()) > presel_maxeta ) {
                 vtxAna_.discardLastDipho();
                 continue;
             }
-	    oneKinSelected = true;
+            oneKinSelected = true;
 
             if( ! l.PhotonMITPreSelection(ipho1, vtxs[0], &corrected_pho_energy[0] )
                 || ! l.PhotonMITPreSelection(ipho2, vtxs[0], &corrected_pho_energy[0] ) ) {
@@ -2105,9 +2107,9 @@ bool PhotonAnalysis::SelectEventsReduction(LoopAll& l, int jentry)
 		       *std::max_element(l.dipho_vtx_std_sel->begin(), l.dipho_vtx_std_sel->end()) + 1
 		       : 1 );
     for(int ivtx = 0; ivtx<highestVtx; ++ivtx ) {
-	postProcessJets(l,ivtx);
+        postProcessJets(l,ivtx);
     }
-
+    
     return oneKinSelected;
 }
 
@@ -2180,8 +2182,12 @@ void PhotonAnalysis::MetCorrections2012_Simple(LoopAll& l,TLorentzVector lead_p4
 
 bool PhotonAnalysis::SkimEvents(LoopAll& l, int jentry)
 {
+    static TH1F * promptFakeFractions = 0;
+    static TH1F * promptMotherStatus = 0;
+    static TH1F * fakeMotherStatus = 0;
     if( dataIs2011 ) { l.version=12; }
-
+    
+    
     l.b_pho_n->GetEntry(jentry);
     if( l.pho_n < 2 ) {
         return false;
@@ -2239,12 +2245,24 @@ bool PhotonAnalysis::SkimEvents(LoopAll& l, int jentry)
         }
 
         if( filetype != 0 && ! (keepPP && keepPF && keepFF) ) {
+            if( promptFakeFractions == 0 ) {
+                promptFakeFractions = new TH1F("promptFakeFractions","promptFakeFractions",3,-0.5,2.5);
+                promptMotherStatus = new TH1F("promptMotherStatus","promptMotherStatus",20,-0.5,20);
+                fakeMotherStatus = new TH1F("fakeMotherStatus","fakeMotherStatus",20,-0.5,20);
+                l.AddGlobalHisto(promptFakeFractions);
+                l.AddGlobalHisto(promptMotherStatus);
+                l.AddGlobalHisto(fakeMotherStatus);
+            }
+            
+            l.b_weight->GetEntry(jentry);
             l.b_gp_n->GetEntry(jentry);
             l.b_gp_mother->GetEntry(jentry);
             l.b_gp_status->GetEntry(jentry);
             l.b_gp_pdgid->GetEntry(jentry);
             l.b_gp_p4->GetEntry(jentry);
 
+            std::vector<TLorentzVector *> gen_pho;
+            
             int np = 0;
             for(int ip=0;ip<l.gp_n;++ip) {
                 if( l.gp_status[ip] != 1 || l.gp_pdgid[ip] != 22 ) {
@@ -2252,16 +2270,25 @@ bool PhotonAnalysis::SkimEvents(LoopAll& l, int jentry)
                 }
                 TLorentzVector * p4 = (TLorentzVector*) l.gp_p4->At(ip);
                 if( l.gp_mother[ip] < 0 || p4->Pt() < 20. || fabs(p4->Eta()) > 3. ) { continue; }
+                bool duplicate = false;
+                for(size_t ii=0; ii<gen_pho.size(); ++ii) {
+                    if( p4->DeltaR(*p4) < 0.05 ) { 
+                        duplicate = true; 
+                        break;
+                    }
+                }
+                if( duplicate ) { continue; }
                 int mother_id = abs( l.gp_pdgid[ l.gp_mother[ip] ] );
                 if( mother_id <= 25 ) { 
-		    ++np; 
-		    /// std::cout << "Prompt photon mother " << l.gp_status[ l.gp_mother[ip] ] << " " << mother_id 
-		    /// 	      << std::endl;
-		    /// p4->Print();
-		}
+                    ++np; 
+                    promptMotherStatus->Fill((float)l.gp_status[l.gp_mother[ip]],l.weight);
+                } else {
+                    fakeMotherStatus->Fill((float)l.gp_status[l.gp_mother[ip]],l.weight);
+                }
                 if( np >= 2 ) { break; }
             }
-	    /// std::cout << "N prompt photons: " << np << std::endl;
+            /// std::cout << "N prompt photons: " << np << std::endl;
+            promptFakeFractions->Fill((float)np,l.weight);
             if( np >= 2 && ! keepPP ) { return false; }
             if( np == 1 && ! keepPF ) { return false; }
             if( np == 0 && ! keepFF ) { return false; }
@@ -2767,7 +2794,6 @@ Bool_t PhotonAnalysis::GenMatchedPhoton(LoopAll& l, int ipho){
         }
     }
     return is_prompt;
-
 }
 
 
@@ -2874,7 +2900,7 @@ bool PhotonAnalysis::ElectronTag2012B(LoopAll& l, int& diphotonVHlep_id, int& el
 
         if(mvaselection) {
             diphotonVHlep_id = l.DiphotonMITPreSelection(leadEtVHlepCut,subleadEtVHlepCut,phoidMvaCut,
-                applyPtoverM, &smeared_pho_energy[0], -1, false, false, veto_indices);
+                applyPtoverM, &smeared_pho_energy[0], true, true, -1, false, veto_indices);
             if(localdebug) cout<<"diphotonVHlep_id "<<diphotonVHlep_id<<endl;
         } else {
             diphotonVHlep_id = l.DiphotonCiCSelection( l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtVHlepCut,subleadEtVHlepCut, 4,
@@ -3109,7 +3135,7 @@ bool PhotonAnalysis::ElectronStudies2012B(LoopAll& l, float* smeared_pho_energy,
 
     if(mvaselection) {
         diphotonVHlep_id = l.DiphotonMITPreSelection(leadEtVHlepCut,subleadEtVHlepCut,phoidMvaCut,
-            applyPtoverM, &smeared_pho_energy[0], -1, false, false, veto_indices);
+            applyPtoverM, &smeared_pho_energy[0], true, true, -1, false, veto_indices);
     } else {
         diphotonVHlep_id = l.DiphotonCiCSelection( l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtVHlepCut,subleadEtVHlepCut, 4,
             applyPtoverM, &smeared_pho_energy[0], true, -1, veto_indices);
@@ -3375,7 +3401,7 @@ bool PhotonAnalysis::ElectronTagStudies2012(LoopAll& l, int diphotonVHlep_id, fl
             l.PhotonsToVeto(el_sc, drtoveto, veto_indices, true);
 
             diphotonVHlep_id = l.DiphotonMITPreSelection(leadptcut,subleadptcut,-0.2,
-                    applyPtoverM, &smeared_pho_energy[0], elVtx, false, false, veto_indices);
+                    applyPtoverM, &smeared_pho_energy[0], true, true, -1, false, veto_indices);
             //    diphotonVHlep_id = l.DiphotonCiCSelection( l.phoLOOSE, l.phoLOOSE, leadEtVHlepCut,subleadEtVHlepCut, 4,
             //        applyPtoverM, &smeared_pho_energy[0], true, elVtx, veto_indices);
 
@@ -3838,7 +3864,7 @@ bool PhotonAnalysis::MuonTag2012B(LoopAll& l, int& diphotonVHlep_id, int& mu_ind
 
         if(mvaselection) {
             diphotonVHlep_id = l.DiphotonMITPreSelection(leadEtVHlepCut,subleadEtVHlepCut,phoidMvaCut,
-                applyPtoverM, &smeared_pho_energy[0], -1, false, false, veto_indices);
+                applyPtoverM, &smeared_pho_energy[0], true, true, -1, false, veto_indices);
         } else {
             diphotonVHlep_id = l.DiphotonCiCSelection( l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtVHlepCut,subleadEtVHlepCut, 4,
                 applyPtoverM, &smeared_pho_energy[0], true, -1, veto_indices);
@@ -4530,7 +4556,7 @@ bool PhotonAnalysis::TTHleptonicTag2012(LoopAll& l, int diphotonTTHlep_id, float
 		diphotonTTHlep_id = l.DiphotonCiCSelection( l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtTTHlepCut,subleadEtTTHlepCut, 4,
 							    applyPtoverM, &smeared_pho_energy[0], true, -1, veto_indices);
 	    }else{
-		diphotonTTHlep_id=l.DiphotonMITPreSelection(leadEtTTHlepCut,subleadEtTTHlepCut,phoidMvaCut,applyPtoverM, &smeared_pho_energy[0],-1,true,false, veto_indices );
+		diphotonTTHlep_id=l.DiphotonMITPreSelection(leadEtTTHlepCut,subleadEtTTHlepCut,phoidMvaCut,applyPtoverM, &smeared_pho_energy[0],true,true,-1,false, veto_indices );
 	    }
 	    
 	    if(diphotonTTHlep_id!=-1 && elVtx != -1){
@@ -4977,7 +5003,7 @@ bool PhotonAnalysis::METTag2012B(LoopAll& l, int& diphotonVHmet_id, int& met_cat
     int metVtx=0;  // use default
     if(mvaselection) {
         diphotonVHmet_id = l.DiphotonMITPreSelection(leadEtVHmetCut,subleadEtVHmetCut,phoidMvaCut,
-            applyPtoverM, &smeared_pho_energy[0], -1, false);
+            applyPtoverM, &smeared_pho_energy[0], true, true, -1);
     } else {
         diphotonVHmet_id = l.DiphotonCiCSelection( l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtVHmetCut,subleadEtVHmetCut, 4,
             applyPtoverM, &smeared_pho_energy[0], true, -1);
@@ -5992,5 +6018,7 @@ std::pair<int, int> PhotonAnalysis::SelectBtaggedAndHighestPtJets(LoopAll& l,int
 // Local Variables:
 // mode: c++
 // c-basic-offset: 4
+// indent-tabs-mode: nil
+// tab-width: 4
 // End:
 // vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

@@ -1,11 +1,14 @@
 #!/bin/env python
 
+import ROOT
 from optparse import OptionParser, make_option
 import sys, json, copy, itertools, os.path, os
 
 from math import sqrt,fabs
 
 import rootglobestyle
+
+ROOT.gSystem.Load("libHiggsAnalysisCombinedLimit")
 
 class Helper:
     def __init__(self):

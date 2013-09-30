@@ -24,6 +24,7 @@ def makeLabels():
         "Muon-tagged class",
         "Electron-tagged class",
         "MET-tagged class",
+        
     )
     aDict['baseline7TeV'] = (
         "Both photons in barrel, min(R_{9}) > 0.94",
@@ -42,6 +43,10 @@ def makeLabels():
 		"Muon-tagged class",
 		"Electron-tagged class",
 		"MET-tagged class",
+                "ttH Leptonic",
+                "ttH Hadronic",
+                "VH Hadronic btag",
+                "VH Hadronic 0tag",
     )
     aDict['spin'] = (
         "#splitline{max(|#eta|) < 1.44, min(R_{9}) > 0.94}{|cos(#theta*)| < 0.2}",
@@ -146,6 +151,7 @@ def doBandsFit(hmass, cpdf, nomcurve, datanorm, plot, catname, everyN):
 def main(o):
     from pprint import pprint
 
+    ROOT.gSystem.Load("$CMSSW_BASE/lib/slc5_amd64_gcc472/libHiggsAnalysisCombinedLimit.so")
     ROOT.gROOT.SetStyle('Plain')
     ROOT.gROOT.SetBatch(1)
     ROOT.gStyle.SetOptStat(0)

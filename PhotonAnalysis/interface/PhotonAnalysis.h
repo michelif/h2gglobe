@@ -30,7 +30,7 @@
 class JetHandler;
 
 // ------------------------------------------------------------------------------------
-class PhotonAnalysis : public BaseAnalysis
+class PhotonAnalysis : public BaseAnalysis 
 {
     friend class LoopAll;
  public:
@@ -424,6 +424,8 @@ class PhotonAnalysis : public BaseAnalysis
     // genLevels for calculating pdf errors post ws production (until PdfWeightSmearer works)
     float generatorPt_;
     float generatorY_;
+
+
 
  protected:
     void PreselectPhotons(LoopAll& l, int jentry);

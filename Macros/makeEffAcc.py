@@ -71,8 +71,8 @@ ROOT.gROOT.SetBatch(1)
 #lumi=3770
 #systematics = ["vtxEff","idEff","E_scale","E_res","triggerEff","regSig","phoIdMva"] # These are the main contributions to eff*Acc
 systematics = ["vtxEff","idEff","E_scale","E_res","triggerEff"] # These are the main contributions to eff*Acc
-## Masses = range(110,152,2) 
-Masses = range(110,151,1) 
+Masses = range(110,152,2) 
+
 # -------------------------------------------------------------
 
 f = ROOT.TFile(sys.argv[1])

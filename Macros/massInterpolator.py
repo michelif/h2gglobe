@@ -10,6 +10,7 @@ def main(options,args):
     import numpy
     
     ## Load library
+    ROOT.gSystem.Load("libHiggsAnalysisCombinedLimit")
     ROOT.gSystem.Load("../libLoopAll.so")
     from copy import copy
 

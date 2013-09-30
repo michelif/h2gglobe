@@ -4557,7 +4557,7 @@ bool PhotonAnalysis::TTHleptonicTag2012(LoopAll& l, int& diphotonTTHlep_id, floa
     bool passMuPhotonCuts=false;
 
     if(elInd != -1){
-        el_tag = (TLorentzVector*) l.el_std_p4->At(elInd);
+	    el_tag = (TLorentzVector*) l.el_std_p4->At(elInd);
     }
 
     int elVtx=-1;
@@ -4567,7 +4567,7 @@ bool PhotonAnalysis::TTHleptonicTag2012(LoopAll& l, int& diphotonTTHlep_id, floa
 	TLorentzVector* myelsc = (TLorentzVector*) l.el_std_sc->At(elInd);
 
     float drtoveto = drSC_lep;
-    float drgsftoveto = drGsf_lep;
+	float drgsftoveto = drGsf_lep;
     std::vector<bool> veto_indices;
     veto_indices.clear();
     l.PhotonsToVeto(myelsc, drtoveto,veto_indices, true, drgsftoveto);
@@ -4578,7 +4578,7 @@ bool PhotonAnalysis::TTHleptonicTag2012(LoopAll& l, int& diphotonTTHlep_id, floa
 	// need to check again for d0 and dZ (couldn't before because we didn't have the vertex)                                        
 	if(l.ElectronMVACuts(elInd, elVtx)){
 	    if(!mvaselection){
-            diphotonTTHlep_id = l.DiphotonCiCSelection( l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtTTHlepCut,subleadEtTTHlepCut, 4,
+		    diphotonTTHlep_id = l.DiphotonCiCSelection( l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtTTHlepCut,subleadEtTTHlepCut, 4,
 							    applyPtoverM, &smeared_pho_energy[0], true, -1, veto_indices);
 	    }else{
             diphotonTTHlep_id=l.DiphotonMITPreSelection(leadEtTTHlepCut,subleadEtTTHlepCut,phoidMvaCut,applyPtoverM, &smeared_pho_energy[0],vetodipho,kinonly,diphobdt_output_Cut_TTHlep,-1,false, veto_indices );

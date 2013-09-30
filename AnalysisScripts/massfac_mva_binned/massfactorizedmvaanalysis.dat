@@ -64,7 +64,7 @@ doEscaleSyst=1
 doEresolSmear=1
 doEresolSyst=1
 
-energyCorrectionMethod=Bendavid
+energyCorrectionMethod=BendavidOTF
 doEcorrectionSmear=1
 doEcorrectionSyst=0
 

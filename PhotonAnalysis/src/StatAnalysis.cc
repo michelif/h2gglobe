@@ -1090,6 +1090,24 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
         // see if the event falls into an exclusive category
         computeExclusiveCategory(l, category, diphoton_index, Higgs.Pt() );
 
+	//useful for TTH and vhhad
+	//apply btag SF and (if needed) shifting one sigma for systematics
+
+	//if needed you can compute btag efficiency 
+	//	computeBtagEff(l);
+
+
+	if(includeTTHlep || includeTTHhad){
+	    bool isMC = l.itype[l.current]!=0;
+	    if(isMC && applyBtagSF ){
+		if (category==nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories +  nVHlepCategories +  nVHmetCategories ||category ==nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories +  nVHlepCategories + nVHmetCategories+nTTHlepCategories){//tth categories
+		    cout<<evweight<<" ";
+		    evweight*=BtagReweight(l,shiftBtagEffUp_bc,shiftBtagEffDown_bc,shiftBtagEffUp_l,shiftBtagEffDown_l,1);
+		    cout<<evweight<<endl;
+		}
+	    }
+	}
+
         // if doing the spin analysis calculate new category
         if (doSpinAnalysis) computeSpinCategory(l, category, lead_p4, sublead_p4);
 
@@ -1366,23 +1384,7 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
             eventListText << endl;
         }
 
-	//useful for TTH and vhhad
-	//apply btag SF and (if needed) shifting one sigma for systematics
 
-	//if needed you can compute btag efficiency 
-	//	computeBtagEff(l);
-
-
-	if(includeTTHlep || includeVHhad){
-	    bool isMC = l.itype[l.current]!=0;
-	    if(isMC && applyBtagSF ){
-		if (category==9 ||category ==10){//tth categories
-		    evweight*=BtagReweight(l,shiftBtagEffUp_bc,shiftBtagEffDown_bc,shiftBtagEffUp_l,shiftBtagEffDown_l,1);
-		}else if (category == 11){//vh categories. loose wp for btag
-		    evweight*=BtagReweight(l,shiftBtagEffUp_bc,shiftBtagEffDown_bc,shiftBtagEffUp_l,shiftBtagEffDown_l,0);
-		}
-	    }
-	}
         return (category >= 0 && mass>=massMin && mass<=massMax);
     }
 

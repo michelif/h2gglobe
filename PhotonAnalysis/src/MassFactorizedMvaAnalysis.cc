@@ -847,6 +847,17 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
             computeExclusiveCategory(l, category, diphoton_index, Higgs.Pt(), diphobdt_output, true); 
         }
 
+	if(includeTTHlep || includeTTHhad){
+	    bool isMC = l.itype[l.current]!=0;
+	    if(isMC && applyBtagSF ){
+		if (category==nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories +  nVHlepCategories +  nVHmetCategories ||category ==nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories +  nVHlepCategories + nVHmetCategories+nTTHlepCategories){//tth categories
+		    cout<<evweight<<" ";
+		    evweight*=BtagReweight(l,shiftBtagEffUp_bc,shiftBtagEffDown_bc,shiftBtagEffUp_l,shiftBtagEffDown_l,1);
+		    cout<<evweight<<endl;
+		}
+	    }
+	}
+
         if (fillOptTree) {
             std::string name;
             if (genSys != 0)

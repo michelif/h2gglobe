@@ -20,8 +20,8 @@
 #rm mc_bkg_summer12_s10_2/*.dat
 #./AnalysisScripts/mk_reduction_dat.py /store/group/phys_higgs/cmshgg/processed/V14_00_04/mc/Summer12_S10_8TeV ${storedir}/mc/Summer12_S10_8TeV mc_bkg_summer12_s10_2.txt
 #
-#rm mc_sig_summer12_s10/*.dat
-#./AnalysisScripts/mk_reduction_dat.py /store/group/phys_higgs/cmshgg/processed/V14_00_03/mc/Summer12_S10_8TeV ${storedir}/mc/Summer12_S10_8TeV mc_sig_summer12_s10.txt
+rm mc_sig_summer12_s10/*.dat
+./AnalysisScripts/mk_reduction_dat.py /store/group/phys_higgs/cmshgg/processed/V14_00_03/mc/Summer12_S10_8TeV ${storedir}/mc/Summer12_S10_8TeV mc_sig_summer12_s10.txt
 
 #rm mc_spin2_summer12_s10/*.dat
 #./AnalysisScripts/mk_reduction_dat.py /store/group/phys_higgs/cmshgg/processed/V15_00_02/mc/Summer12_S10_8TeV ${storedir}/mc/Summer12_S10_8TeV mc_spin2_summer12_s10.txt
@@ -63,11 +63,11 @@
 ## ./AnalysisScripts/mk_reduction_dat.py /store/group/phys_higgs/cmshgg/processed/V15_00_05/data ${storedir}/data data2012_RERECO.txt
 
 ## Jun21 7TeV re-reco 
-rm mc_7TeV/*.dat
-./AnalysisScripts/mk_reduction_dat.py /store/group/phys_higgs/cmshgg/processed/V15_00_11/mc/ReReco2011 ${storedir}/mc mc_7TeV.txt
+#rm mc_7TeV/*.dat
+#./AnalysisScripts/mk_reduction_dat.py /store/group/phys_higgs/cmshgg/processed/V15_00_11/mc/ReReco2011 ${storedir}/mc mc_7TeV.txt
 
-rm data_7TeV/*.dat
-./AnalysisScripts/mk_reduction_dat.py /store/group/phys_higgs/cmshgg/processed/V15_00_11/data ${storedir}/data data_7TeV.txt
+#rm data_7TeV/*.dat
+#./AnalysisScripts/mk_reduction_dat.py /store/group/phys_higgs/cmshgg/processed/V15_00_11/data ${storedir}/data data_7TeV.txt
 
 wd=$PWD
 cd AnalysisScripts
@@ -77,5 +77,5 @@ cd -
 tar rf ${version}.tar JSON *.sh
 gzip -f ${version}.tar
 
-git tag -a ${version} -m "Tag used for reduction ${group}/${version}"
+#git tag -a ${version} -m "Tag used for reduction ${group}/${version}"
 

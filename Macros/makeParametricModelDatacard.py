@@ -39,6 +39,7 @@ dijetCats = [4,5]
 muonCat = [6]
 eleCat = [7]
 metCat = [8]
+tthHadCats = [11]
 options.procs += ',bkg_mass'
 options.procs = [combProc[p] for p in options.procs.split(',')]
 options.toSkip = options.toSkip.split(',')
@@ -133,6 +134,14 @@ else:
 	vbfSysts['CMS_eff_j'] = [0.02,0.02]
 	vbfSysts['CMS_hgg_JECmigration'] = [0.025,0.005] 
 	vbfSysts['CMS_hgg_UEPSmigration'] = [0.045,0.010]
+
+#syst for tth tags
+tthHadSysts={}
+tthHadSysts['Btag_eff']=[0.02,0.01]#[gghEffect, tthEffect] the only two relevant for tthhad
+
+#FIXME
+tthLepSysts={}
+tthLepSysts['Btag_eff']=[0,0.01]
 
 # lepton + MET systs (not done before for 7TeV)
 eleSyst = {}
@@ -373,6 +382,51 @@ def printVbfSysts():
 						outFile.write('- ')
 			outFile.write('\n')
 
+def printTTHSysts():
+	print 'TTH...'
+	for tthHadSystName, tthHadSystVals in tthHadSysts.items():
+		outFile.write('%-25s   lnN   '%tthHadSystName)
+		tthHadEvCount={}
+		incEvCount={}
+		for p in options.procs:
+			print p
+			tthHadEvCount[p] = 0.
+			incEvCount[p] = 0.
+			for c in range(options.ncats):
+				if '%s:%d'%(p,c) in options.toSkip: continue
+				if p in bkgProcs: continue
+				th1f = inFile.Get('th1f_sig_%s_mass_m125_cat%d'%(globeProc[p],c))
+				if c in incCats: incEvCount[p] += th1f.Integral()
+				elif c in tthHadCats: tthHadEvCount[p] += th1f.Integral()
+				else: continue
+				# write lines
+			for c in range(options.ncats):
+				for p in options.procs:
+					if '%s:%d'%(p,c) in options.toSkip: continue
+					if p in bkgProcs:
+						print "bkg"+p
+						outFile.write('- ')
+						continue
+					elif p=='ttH': 
+						thisUncert = tthHadSystVals[1]
+					else: 
+						thisUncert = tthHadSystVals[0]
+					if c in incCats:
+						print p+" "
+						print c
+						print tthHadEvCount[p]
+						outFile.write('%6.4f '%((incEvCount[p]-thisUncert*tthHadEvCount[p])/incEvCount[p]))
+						outFile.write('%s %d %s'%("category",c,"****"))
+					elif c in tthHadCats:
+						outFile.write('%6.4f '%(1.+thisUncert))
+						outFile.write('%s %d %s'%("category",c,"****"))
+					else:
+						outFile.write('- ')
+						outFile.write('%s %d %s'%("category",c,"****"))
+		outFile.write('\n')
+
+
+
 def printLepMetSysts():
 	outFile.write('%-25s   lnN   '%('CMS_hgg_eff_muon'))
 	for c in range(options.ncats):
@@ -418,6 +472,7 @@ printObsProcBinLines()
 printNuisParams()
 printTheorySysts()
 printLumiSyst()
-printGlobeSysts()
+#printGlobeSysts()
+printTTHSysts()
 printVbfSysts()
 printLepMetSysts()

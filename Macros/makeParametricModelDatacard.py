@@ -138,7 +138,8 @@ else:
 #syst for tth tags
 tthSysts={}
 tthSysts['Btag_eff']=[0.02,0.01]#[gghEffect, tthEffect] the only two relevant for tth category
-
+tthSysts['CMS_hgg_eff_muon']=[0.01,0.01]#[gghEffect, tthEffect] the only two relevant for tth category
+tthSysts['CMS_hgg_eff_ele']=[0.01,0.01]#[gghEffect, tthEffect] the only two relevant for tth category
 
 # lepton + MET systs (not done before for 7TeV)
 eleSyst = {}
@@ -379,7 +380,7 @@ def printVbfSysts():
 						outFile.write('- ')
 			outFile.write('\n')
 
-def printTTHBtagSysts():
+def printTTHSysts():
 	print 'TTH had...'
 	for tthSystName, tthSystVals in tthSysts.items():
 		outFile.write('%-25s   lnN   '%tthSystName)
@@ -464,6 +465,6 @@ printNuisParams()
 printTheorySysts()
 printLumiSyst()
 #printGlobeSysts()
-printTTHBtagSysts()
+printTTHSysts()
 printVbfSysts()
-printLepMetSysts()
+#printLepMetSysts()

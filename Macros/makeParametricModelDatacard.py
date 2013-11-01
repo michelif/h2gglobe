@@ -7,7 +7,7 @@ parser.add_option("-o","--outfilename",default="cms_hgg_datacard.txt",help="Name
 parser.add_option("-p","--procs",default="ggh,vbf,wh,zh,tth",help="String list of procs (default: %default)")
 parser.add_option("-c","--ncats",default=9,type="int",help="Number of cats (default: %default)")
 parser.add_option("--photonSystCats",default="EBlowR9,EBhighR9,EElowR9,EEhighR9",help="String list of photon syst name (default: %default)")
-parser.add_option("--toSkip",default="ggH:6,ggH:7,qqH:6,qqH:7",help="proc:cat which are to skipped (default: %default)")
+parser.add_option("--toSkip",default="ggH:6,ggH:7,qqH:6,qqH:7,qqH:11,ggH:12,qqH:12",help="proc:cat which are to skipped (default: %default)")
 parser.add_option("--isCutBased",default=False,action="store_true")
 parser.add_option("--is2011",default=False,action="store_true")
 (options,args)=parser.parse_args()
@@ -39,7 +39,7 @@ dijetCats = [4,5]
 muonCat = [6]
 eleCat = [7]
 metCat = [8]
-tthHadCats = [11]
+tthCats = [11,12]
 options.procs += ',bkg_mass'
 options.procs = [combProc[p] for p in options.procs.split(',')]
 options.toSkip = options.toSkip.split(',')
@@ -136,12 +136,9 @@ else:
 	vbfSysts['CMS_hgg_UEPSmigration'] = [0.045,0.010]
 
 #syst for tth tags
-tthHadSysts={}
-tthHadSysts['Btag_eff']=[0.02,0.01]#[gghEffect, tthEffect] the only two relevant for tthhad
+tthSysts={}
+tthSysts['Btag_eff']=[0.02,0.01]#[gghEffect, tthEffect] the only two relevant for tth category
 
-#FIXME
-tthLepSysts={}
-tthLepSysts['Btag_eff']=[0,0.01]
 
 # lepton + MET systs (not done before for 7TeV)
 eleSyst = {}
@@ -382,44 +379,41 @@ def printVbfSysts():
 						outFile.write('- ')
 			outFile.write('\n')
 
-def printTTHSysts():
-	print 'TTH...'
-	for tthHadSystName, tthHadSystVals in tthHadSysts.items():
-		outFile.write('%-25s   lnN   '%tthHadSystName)
-		tthHadEvCount={}
+def printTTHBtagSysts():
+	print 'TTH had...'
+	for tthSystName, tthSystVals in tthSysts.items():
+		outFile.write('%-25s   lnN   '%tthSystName)
+		tthEvCount={}
 		incEvCount={}
 		for p in options.procs:
 			print p
-			tthHadEvCount[p] = 0.
+			tthEvCount[p] = 0.
 			incEvCount[p] = 0.
 			for c in range(options.ncats):
 				if '%s:%d'%(p,c) in options.toSkip: continue
 				if p in bkgProcs: continue
 				th1f = inFile.Get('th1f_sig_%s_mass_m125_cat%d'%(globeProc[p],c))
 				if c in incCats: incEvCount[p] += th1f.Integral()
-				elif c in tthHadCats: tthHadEvCount[p] += th1f.Integral()
+				elif c in tthCats: tthEvCount[p] += th1f.Integral()
 				else: continue
 				# write lines
 		for c in range(options.ncats):
 			for p in options.procs:
 				if '%s:%d'%(p,c) in options.toSkip: continue
 				if p in bkgProcs:
-					print "bkg"+p
 					outFile.write('- ')
 					continue
 				elif p=='ttH': 
-					thisUncert = tthHadSystVals[1]
+					thisUncert = tthSystVals[1]
 				else: 
-					thisUncert = tthHadSystVals[0]
+					thisUncert = tthSystVals[0]
 				if c in incCats:
-					print p+" "
-					print c
-					print tthHadEvCount[p]
-					outFile.write('%6.4f '%((incEvCount[p]-thisUncert*tthHadEvCount[p])/incEvCount[p]))
-				elif c in tthHadCats:
+					print tthEvCount[p]
+					outFile.write('%6.4f '%((incEvCount[p]-thisUncert*tthEvCount[p])/incEvCount[p]))
+				elif c in tthCats:
 					outFile.write('%6.4f '%(1.+thisUncert))
 				else:
-					outFile.write('- ')
+					outFile.write('-')
 		outFile.write('\n')
 
 
@@ -470,6 +464,6 @@ printNuisParams()
 printTheorySysts()
 printLumiSyst()
 #printGlobeSysts()
-printTTHSysts()
+printTTHBtagSysts()
 printVbfSysts()
 printLepMetSysts()

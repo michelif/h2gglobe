@@ -1365,7 +1365,7 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 	    bool passElePhotonCuts=false;
 	    TLorentzVector* myel_1;
 	    int elVtx_1=0;
-	    if(el_ind!=-1) {
+	    if(el_ind_1!=-1) {
 		myel_1 = (TLorentzVector*) l.el_std_p4->At(el_ind_1);
 		TLorentzVector* mysc_1 = (TLorentzVector*) l.el_std_sc->At(el_ind_1);
 		elVtx_1 = l.FindElectronVertex(el_ind_1);
@@ -1378,6 +1378,7 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		}
 		
 	    }
+
 
 	    int el_ind_2=-1; float bestmvaval=-2;
 	    for(int iel=0; iel<l.el_std_n; iel++){
@@ -1403,7 +1404,9 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		    passEle2PhotonCuts=true;
 		}
 	    }
-	    
+
+
+
 	    if(el_ind_1!=-1 && passElePhotonCuts) {
 		excl_sync
 		    << "\tele1_pt:"                      <<  myel_1->Pt()

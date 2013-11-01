@@ -991,7 +991,7 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
                 if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
 
                 VBFevent= ( run7TeV4Xanalysis ?
-                        VBFTag2011(l, diphotonVBF_id, &smeared_pho_energy[0], true, eventweight, myweight) :
+			    VBFTag2011(l, diphotonVBF_id, &smeared_pho_energy[0], true, eventweight, myweight) :
                         VBFTag2012(vbfIjet1, vbfIjet2, l, diphotonVBF_id, &smeared_pho_energy[0], true, eventweight, myweight) )
                     ;
                 if (runJetsForSpin) VBFevent=false;

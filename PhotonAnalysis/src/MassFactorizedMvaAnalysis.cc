@@ -43,6 +43,7 @@ void MassFactorizedMvaAnalysis::Term(LoopAll& l)
     }
 
     eventListText.close();
+    excl_sync.close();
     std::cout << " nevents " <<  nevents << " " << sumwei << std::endl;
     
     // default categories: Jan16
@@ -67,6 +68,7 @@ void MassFactorizedMvaAnalysis::Init(LoopAll& l)
 
     //  std::string outputfilename = (std::string) l.histFileName;
     eventListText.open(Form("%s",l.outputTextFileName.c_str()));
+    excl_sync.open("excl_sync.txt");
     FillSignalLabelMap(l);
     //
     // These parameters are set in the configuration file
@@ -689,8 +691,8 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 
         if(includeVHmet && !run7TeV4Xanalysis) {
             //	    std::cout << "+++PFMET UNCORR " << l.met_pfmet << std::endl;
-            if(!isSyst) VHmetevent=METTag2012B(l, diphotonVHmet_id, VHmetevent_cat, &smeared_pho_energy[0], met_sync, true, phoidMvaCut, false); 
-            if(isSyst)  VHmetevent=METTag2012B(l, diphotonVHmet_id, VHmetevent_cat, &smeared_pho_energy[0], met_sync, true, phoidMvaCut, true); 
+            if(!isSyst) VHmetevent=METTag2012B(l, diphotonVHmet_id, VHmetevent_cat, &smeared_pho_energy[0], lep_sync, true, phoidMvaCut, false); 
+            if(isSyst)  VHmetevent=METTag2012B(l, diphotonVHmet_id, VHmetevent_cat, &smeared_pho_energy[0], lep_sync, true, phoidMvaCut, true); 
             // FIXME  need to un-flag events failing the diphoton mva cut.
         }
 
@@ -715,8 +717,8 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
                 if(eventweight*sampleweight!=0) myweight=eventweight/sampleweight;
                 
                 VBFevent= ( run7TeV4Xanalysis ? 
-                    VBFTag2011(l, diphotonVBF_id, &smeared_pho_energy[0], true, eventweight, myweight) :
-                    VBFTag2012(vbfIjet1, vbfIjet2, l, diphotonVBF_id, &smeared_pho_energy[0], true, eventweight, myweight) );
+			    VBFTag2011(l, diphotonVBF_id, &smeared_pho_energy[0], true, eventweight, myweight) :
+			    VBFTag2012(vbfIjet1, vbfIjet2, l, diphotonVBF_id, &smeared_pho_energy[0], true, eventweight, myweight) );
             }
         }
 
@@ -1179,7 +1181,254 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
             //}
             
                 eventListText << endl;
-            }
+
+		//sync for excltag
+		int categoryFordumper=-1;
+		if(category<=3){
+		    categoryFordumper=0;
+		}else if(category>3 && category<=6){
+		    categoryFordumper=4;
+		}else{
+		    categoryFordumper=category;
+		}
+
+            excl_sync 
+              << "\trun:"                       <<  l.run
+              << "\tlumi:"                      <<  l.lumis
+              << "\tevent:"                     <<  l.event
+              << "\tpho1_e:"                    <<  lead_p4.E()
+              << "\tpho1_eErr:"                 <<  massResolutionCalculator->leadPhotonResolutionNoSmear()
+              << "\tpho1_eta:"                  <<  lead_p4.Eta()
+              << "\tpho1_phi:"                  <<  lead_p4.Phi()
+              << "\tpho2_e:"                    <<  lead_p4.E()
+              << "\tpho2_eErr:"                 <<  massResolutionCalculator->leadPhotonResolutionNoSmear()
+              << "\tpho2_eta:"                  <<  lead_p4.Eta()
+              << "\tpho2_phi:"                  <<  lead_p4.Phi()
+              << "\tmass:"                      <<  mass 		
+              << "\tcat:"                      <<  categoryFordumper;
+	    int tth=0,vhLep=0,vhMet=0,vhHad=0;
+	    if(category==7){
+		vhLep=2;
+	    }else if(category==8){
+		vhLep=1;
+	    }else if(category==9){
+		vhMet=1;
+	    }else if(category==10){
+		tth=2;
+	    }else if(category==11){
+		tth=1;
+	    }else if(category==12){
+		vhHad=1;
+	    }
+            excl_sync 
+		<< "\tvhLep:"                      <<  vhLep
+		<< "\tvhMet:"                      <<  vhMet
+		<< "\ttth:"                      <<  tth
+		<< "\tvhHad:"                      <<  vhHad;
+
+	    //////////jet selection
+	    int njets=0,njets_btagmedium=0;
+	    std::pair<int, int> myJets(-1,-1);
+	    std::pair<float, float> myJetspt(-1.,-1.);
+	    TLorentzVector* j1p4;
+	    float j1pt=-1;
+	    
+	    static std::vector<unsigned char> id_flags;
+	    bool *jetid_flags=0;
+	    if( jetid_flags == 0 ) {
+		switchJetIdVertex( l, l.dipho_vtxind[diphoton_id] );
+		id_flags.resize(l.jet_algoPF1_n);
+		for(int ijet=0; ijet<l.jet_algoPF1_n; ++ijet ) {
+		    id_flags[ijet] = PileupJetIdentifier::passJetId(l.jet_algoPF1_cutbased_wp_level[ijet], PileupJetIdentifier::kLoose);
+		}
+		jetid_flags = (bool*)&id_flags[0];
+	    }
+  
+	    for(int ii=0; ii<l.jet_algoPF1_n; ++ii) {
+		TLorentzVector * j1p4 = (TLorentzVector *) l.jet_algoPF1_p4->At(ii);
+		if(jetid_flags != 0 && !jetid_flags[ii]) continue; 
+		if(fabs(j1p4->Eta()) > 4.7) continue;
+		
+		bool isJet_LeadPho = false;
+		bool isJet_SubLeadPho = false;
+		
+		double dR_jet_PhoLead = j1p4->DeltaR(lead_p4);
+		if( dR_jet_PhoLead<0.5 ) isJet_LeadPho = true;
+		
+		double dR_jet_PhoSubLead = j1p4->DeltaR(sublead_p4);
+		if( dR_jet_PhoSubLead<0.5 ) isJet_SubLeadPho = true;
+		
+		if( isJet_LeadPho || isJet_SubLeadPho ) continue;
+		j1pt=j1p4->Pt();
+		if(j1pt<20.) continue;
+		njets++;
+		if(l.jet_algoPF1_csvBtag[ii]>0.679)njets_btagmedium++;
+
+		if(j1pt>myJetspt.first) {
+		    myJets.second=myJets.first;
+		    myJetspt.second=myJetspt.first;
+		    myJetspt.first=j1pt;
+		    myJets.first=ii;
+		}
+		else if(j1pt>myJetspt.second) {
+		    myJetspt.second=j1pt;
+		    myJets.second=ii;
+		}
+	    }
+	    
+	    if(myJets.first>-1){
+		TLorentzVector * j1p4 = (TLorentzVector *) l.jet_algoPF1_p4->At(myJets.first);
+		excl_sync
+		    << "\tjet1_pt:"                      <<  j1p4->Pt()
+		    << "\tjet1_eta:"                      <<  j1p4->Eta()
+		    << "\tjet1_phi:"                      <<  j1p4->Phi();
+		if(myJets.second>-1){
+		TLorentzVector * j2p4 = (TLorentzVector *) l.jet_algoPF1_p4->At(myJets.second);
+		excl_sync
+		    << "\tjet2_pt:"                      <<  j2p4->Pt()
+		    << "\tjet2_eta:"                      <<  j2p4->Eta()
+		    << "\tjet2_phi:"                      <<  j2p4->Phi();
+		}else{
+		excl_sync
+		    << "\tjet2_pt:"                      <<  -999
+		    << "\tjet2_eta:"                      << -999
+		    << "\tjet2_phi:"                      << -999;
+		}
+	    }else{
+		excl_sync
+		    << "\tjet1_pt:"                      <<  -999
+		    << "\tjet1_eta:"                      << -999
+		    << "\tjet1_phi:"                      << -999
+		    << "\tjet2_pt:"                      <<  -999
+		    << "\tjet2_eta:"                      << -999
+		    << "\tjet2_phi:"                      << -999;
+	    }
+	    excl_sync
+		<<"\tnumJets:"<<njets
+		<<"\tnumBJets:"<<njets_btagmedium;
+	    ////////lepton selection
+	    //muons
+	    int mu_ind_1 = l.MuonSelection2012B(10);
+	    bool passMuPhoCuts=false;
+	    TLorentzVector* mymu_1;
+	    if(mu_ind_1!=-1){
+		mymu_1 = (TLorentzVector*) l.mu_glo_p4->At(mu_ind_1);
+		passMuPhoCuts = l.MuonPhotonCuts2012B(lead_p4, sublead_p4, mymu_1);
+	    }
+
+	    int mu_ind_2 = -1; float bestpt = -2.0;
+	    bool passMu2PhoCuts=false;
+	    for( int indmu=0; indmu<l.mu_glo_n; indmu++){
+		TLorentzVector* thismu = (TLorentzVector*) l.mu_glo_p4->At(indmu);
+		if(indmu==mu_ind_1) continue;
+		if(fabs(thismu->Eta())>2.4) continue;
+		if((thismu->Pt())<10) continue;
+		if(!l.MuonTightID2012(indmu)) continue;
+		if(!l.MuonIsolation2012(indmu, (thismu->Pt()))) continue;
+		if(bestpt<(thismu->Pt())) {
+		    bestpt=thismu->Pt();
+		    mu_ind_2 = indmu;
+		}
+	    }
+	    TLorentzVector* mymu_2;
+	    if(mu_ind_2!=-1 && passMu2PhoCuts){
+		mymu_2 = (TLorentzVector*) l.mu_glo_p4->At(mu_ind_2);
+		if(mymu_2->DeltaR(lead_p4)>0.5 && mymu_2->DeltaR(sublead_p4)>0.5 && (*mymu_1+*mymu_2).M()<110 && (*mymu_1+*mymu_2).M()>70)passMu2PhoCuts=true;
+	    }
+
+	    if(mu_ind_1!=-1 && passMuPhoCuts) {
+		excl_sync
+		    << "\tmu1_pt:"                      <<  mymu_1->Pt()
+		    << "\tmu1_eta:"                      <<  mymu_1->Eta()
+		    << "\tmu1_phi:"                      <<  mymu_1->Phi();
+		
+            }else{
+		excl_sync
+		    << "\tmu1_pt:"                      <<  -999
+		    << "\tmu1_eta:"                      << -999
+		    << "\tmu1_phi:"                      << -999;
+	    }
+	    if(mu_ind_2!=-1 && passMu2PhoCuts) {
+		excl_sync
+		    << "\tmu2_pt:"                      <<  mymu_2->Pt()
+		    << "\tmu2_eta:"                      <<  mymu_2->Eta()
+		    << "\tmu2_phi:"                      <<  mymu_2->Phi();
+	    }else{
+		excl_sync
+		    << "\tmu2_pt:"                      <<  -999
+		    << "\tmu2_eta:"                      << -999
+		    << "\tmu2_phi:"                      << -999;
+	    }
+
+	    //electrons
+	    int el_ind_1=l.ElectronSelectionMVA2012(10);
+	    bool passElePhotonCuts=false;
+	    TLorentzVector* myel_1;
+	    int elVtx_1=0;
+	    if(el_ind!=-1) {
+		myel_1 = (TLorentzVector*) l.el_std_p4->At(el_ind_1);
+		TLorentzVector* mysc_1 = (TLorentzVector*) l.el_std_sc->At(el_ind_1);
+		elVtx_1 = l.FindElectronVertex(el_ind_1);
+		std::vector<bool> veto_indices; veto_indices.clear();
+		l.PhotonsToVeto(mysc_1, 0.5, veto_indices, true);
+		if(l.ElectronMVACuts(el_ind_1, elVtx_1)){
+		    if(l.ElectronPhotonCuts2012B(lead_p4, sublead_p4, *myel_1, includeVHlepPlusMet)){ 
+			passElePhotonCuts=true;
+		    }
+		}
+		
+	    }
+
+	    int el_ind_2=-1; float bestmvaval=-2;
+	    for(int iel=0; iel<l.el_std_n; iel++){
+		TLorentzVector* thiselp4 = (TLorentzVector*) l.el_std_p4->At(iel);
+		if(iel==el_ind_1) continue;
+		if(l.el_std_mva_nontrig[iel]<0.9) continue;
+		if(thiselp4->Eta()>2.5 || (thiselp4->Eta()>1.442 && thiselp4->Eta()<1.566)) continue;
+		if(fabs(l.el_std_D0Vtx[iel][elVtx_1]) > 0.02) continue;
+		if(fabs(l.el_std_DZVtx[iel][elVtx_1]) > 0.2)  continue;
+		if(l.el_std_hp_expin[iel]>1) continue;
+		if(l.el_std_conv[iel]==0)    continue;
+		if(l.ElectronMVACuts(iel) && thiselp4->Pt()>10 && bestmvaval<l.el_std_mva_nontrig[iel]){
+		    bestmvaval=l.el_std_mva_nontrig[iel];
+		    el_ind_2=iel;
+		}
+	    }
+	    TLorentzVector* myel_2;
+	    bool passEle2PhotonCuts=false;
+	    if(el_ind_2!=-1){
+		myel_2 = (TLorentzVector*) l.el_std_p4->At(el_ind_2);
+		TLorentzVector* mysc_2 = (TLorentzVector*) l.el_std_sc->At(el_ind_2);
+		if(myel_2->DeltaR(lead_p4)>0.5 && myel_2->DeltaR(sublead_p4)>0.5 && (*myel_1+*myel_2).M()<110 && (*myel_1+*myel_2).M()>70){
+		    passEle2PhotonCuts=true;
+		}
+	    }
+	    
+	    if(el_ind_1!=-1 && passElePhotonCuts) {
+		excl_sync
+		    << "\tele1_pt:"                      <<  myel_1->Pt()
+		    << "\tele1_eta:"                      <<  myel_1->Eta()
+		    << "\tele1_phi:"                      <<  myel_1->Phi();
+		
+            }else{
+		excl_sync
+		    << "\tele1_pt:"                      <<  -999
+		    << "\tele1_eta:"                      << -999
+		    << "\tele1_phi:"                      << -999;
+	    }
+	    if(el_ind_2!=-1 && passEle2PhotonCuts) {
+		excl_sync
+		    << "\tele2_pt:"                      <<  myel_2->Pt()
+		    << "\tele2_eta:"                      <<  myel_2->Eta()
+		    << "\tele2_phi:"                      <<  myel_2->Phi();
+	    }else{
+		excl_sync
+		    << "\tele2_pt:"                      <<  -999
+		    << "\tele2_eta:"                      << -999
+		    << "\tele2_phi:"                      << -999;
+	    }
+	    excl_sync<<endl;
+	}
 	return (l.runZeeValidation || fillEscaleTrees || (saveSpinTrees_ && mass>=massMin && mass<=massMax) || (category >= 0 && mass>=massMin && mass<=massMax));
     }
     return false;

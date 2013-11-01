@@ -519,6 +519,7 @@ class PhotonAnalysis : public BaseAnalysis
 
     ofstream met_sync;
     ofstream lep_sync;
+    ofstream excl_sync;
 
     // Pile-up reweighing
     void loadPuMap(const char * fname, TDirectory * dir, TH1 * target=0);

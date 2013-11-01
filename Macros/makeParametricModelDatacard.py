@@ -400,29 +400,26 @@ def printTTHSysts():
 				elif c in tthHadCats: tthHadEvCount[p] += th1f.Integral()
 				else: continue
 				# write lines
-			for c in range(options.ncats):
-				for p in options.procs:
-					if '%s:%d'%(p,c) in options.toSkip: continue
-					if p in bkgProcs:
-						print "bkg"+p
-						outFile.write('- ')
-						continue
-					elif p=='ttH': 
-						thisUncert = tthHadSystVals[1]
-					else: 
-						thisUncert = tthHadSystVals[0]
-					if c in incCats:
-						print p+" "
-						print c
-						print tthHadEvCount[p]
-						outFile.write('%6.4f '%((incEvCount[p]-thisUncert*tthHadEvCount[p])/incEvCount[p]))
-						outFile.write('%s %d %s'%("category",c,"****"))
-					elif c in tthHadCats:
-						outFile.write('%6.4f '%(1.+thisUncert))
-						outFile.write('%s %d %s'%("category",c,"****"))
-					else:
-						outFile.write('- ')
-						outFile.write('%s %d %s'%("category",c,"****"))
+		for c in range(options.ncats):
+			for p in options.procs:
+				if '%s:%d'%(p,c) in options.toSkip: continue
+				if p in bkgProcs:
+					print "bkg"+p
+					outFile.write('- ')
+					continue
+				elif p=='ttH': 
+					thisUncert = tthHadSystVals[1]
+				else: 
+					thisUncert = tthHadSystVals[0]
+				if c in incCats:
+					print p+" "
+					print c
+					print tthHadEvCount[p]
+					outFile.write('%6.4f '%((incEvCount[p]-thisUncert*tthHadEvCount[p])/incEvCount[p]))
+				elif c in tthHadCats:
+					outFile.write('%6.4f '%(1.+thisUncert))
+				else:
+					outFile.write('- ')
 		outFile.write('\n')
 
 

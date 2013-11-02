@@ -7,7 +7,7 @@ parser.add_option("-o","--outfilename",default="cms_hgg_datacard.txt",help="Name
 parser.add_option("-p","--procs",default="ggh,vbf,wh,zh,tth",help="String list of procs (default: %default)")
 parser.add_option("-c","--ncats",default=9,type="int",help="Number of cats (default: %default)")
 parser.add_option("--photonSystCats",default="EBlowR9,EBhighR9,EElowR9,EEhighR9",help="String list of photon syst name (default: %default)")
-parser.add_option("--toSkip",default="ggH:6,ggH:7,qqH:6,qqH:7,qqH:11,ggH:12,qqH:12",help="proc:cat which are to skipped (default: %default)")
+parser.add_option("--toSkip",default="ggH:6,ggH:7,qqH:6,qqH:7,qqH:11,ggH:11,qqH:11",help="proc:cat which are to skipped (default: %default)")
 parser.add_option("--isCutBased",default=False,action="store_true")
 parser.add_option("--is2011",default=False,action="store_true")
 (options,args)=parser.parse_args()
@@ -387,7 +387,7 @@ def printTTHSysts():
 		tthEvCount={}
 		incEvCount={}
 		for p in options.procs:
-			print p
+#			print p
 			tthEvCount[p] = 0.
 			incEvCount[p] = 0.
 			for c in range(options.ncats):
@@ -406,13 +406,26 @@ def printTTHSysts():
 					continue
 				elif p=='ttH': 
 					thisUncert = tthSystVals[1]
-				else: 
+				elif p=='qqH':
+					thisUncert = 0
+				else:
 					thisUncert = tthSystVals[0]
 				if c in incCats:
-					print tthEvCount[p]
-					outFile.write('%6.4f '%((incEvCount[p]-thisUncert*tthEvCount[p])/incEvCount[p]))
+					if thisUncert != 0:
+						outFile.write('%6.4f '%((incEvCount[p]-thisUncert*tthEvCount[p])/incEvCount[p]))
+					else:
+						outFile.write('-')						
 				elif c in tthCats:
-					outFile.write('%6.4f '%(1.+thisUncert))
+					if thisUncert==tthSystVals[0]:#tthsystvals[0] is the same unc for ggh lep and wh zh lep
+						if (p=='ggH'  and c ==12) or (( p=='WH' or p=='ZH') and c ==11):
+							outFile.write('%6.4f '%(1.+thisUncert))
+						else:
+							outFile.write('-')
+					else:
+						if thisUncert !=0:
+							outFile.write('%6.4f '%(1.+thisUncert))
+						else:
+							outFile.write('-')
 				else:
 					outFile.write('-')
 		outFile.write('\n')

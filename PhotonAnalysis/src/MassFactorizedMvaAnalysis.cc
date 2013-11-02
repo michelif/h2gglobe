@@ -1205,7 +1205,12 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
               << "\tpho2_eta:"                  <<  lead_p4.Eta()
               << "\tpho2_phi:"                  <<  lead_p4.Phi()
               << "\tmass:"                      <<  mass 		
-              << "\tcat:"                      <<  categoryFordumper;
+              << "\tcat:"                      <<  categoryFordumper
+	      << "\tpho1_idMVA:"                <<  phoid_mvaout_lead
+              << "\tpho2_idMVA:"                <<  phoid_mvaout_sublead
+              << "\tdiphoMVA:"                  <<  diphobdt_output;
+
+
 	    int tth=0,vhLep=0,vhMet=0,vhHad=0;
 	    if(category==7){
 		vhLep=2;
@@ -1430,6 +1435,10 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		    << "\tele2_eta:"                      << -999
 		    << "\tele2_phi:"                      << -999;
 	    }
+
+	    //MET
+	    TLorentzVector  myMet = l.METCorrection2012B(lead_p4, sublead_p4, moriond2013MetCorrection);
+	    excl_sync<<"\tmet:"<<myMet.Pt();
 	    excl_sync<<endl;
 	}
 	return (l.runZeeValidation || fillEscaleTrees || (saveSpinTrees_ && mass>=massMin && mass<=massMax) || (category >= 0 && mass>=massMin && mass<=massMax));

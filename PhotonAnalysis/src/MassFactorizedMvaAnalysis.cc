@@ -1200,10 +1200,10 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
               << "\tpho1_eErr:"                 <<  massResolutionCalculator->leadPhotonResolutionNoSmear()
               << "\tpho1_eta:"                  <<  lead_p4.Eta()
               << "\tpho1_phi:"                  <<  lead_p4.Phi()
-              << "\tpho2_e:"                    <<  lead_p4.E()
-              << "\tpho2_eErr:"                 <<  massResolutionCalculator->leadPhotonResolutionNoSmear()
-              << "\tpho2_eta:"                  <<  lead_p4.Eta()
-              << "\tpho2_phi:"                  <<  lead_p4.Phi()
+              << "\tpho2_e:"                    <<  sublead_p4.E()
+              << "\tpho2_eErr:"                 <<  massResolutionCalculator->subleadPhotonResolutionNoSmear()
+              << "\tpho2_eta:"                  <<  sublead_p4.Eta()
+              << "\tpho2_phi:"                  <<  sublead_p4.Phi()
               << "\tmass:"                      <<  mass 		
               << "\tcat:"                      <<  categoryFordumper
 	      << "\tpho1_idMVA:"                <<  phoid_mvaout_lead

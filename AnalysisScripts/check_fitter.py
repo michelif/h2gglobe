@@ -57,8 +57,8 @@ for j in groups["fail"]:
         errcode=int(st.read().split("\n")[0])
         st.close()
         if errcode in autorestart:
-            jobid = os.path.basename(j).split("sub")[1].split(".")[0]
-            restart += "%s," % jobid
+        jobid = os.path.basename(j).split("sub")[1].split(".")[0]
+        restart += "%s," % jobid
     except:
         pass
 

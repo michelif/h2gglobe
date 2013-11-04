@@ -553,7 +553,40 @@ def printMetSysts():
 				outFile.write('-')
 	outFile.write('\n')
         
-
+#migration from the two vhlep cat due to met
+        outFile.write('%-25s   lnN   '%('CMS_hgg_eff_met_migration'))
+	tightLepEvCount={}
+	looseLepEvCount={}
+	for p in options.procs:
+		tightLepEvCount[p]=0.
+		looseLepEvCount[p]=0.
+		
+		for c in range(options.ncats):
+			if '%s:%d'%(p,c) in options.toSkip: continue
+			if p in bkgProcs: continue
+			if c in eleCat or c in muonCat:
+				th1f = inFile.Get('th1f_sig_%s_mass_m125_cat%d'%(globeProc[p],c))
+				if c in muonCat:
+					tightLepEvCount[p] += th1f.Integral()
+				else:
+					looseLepEvCount[p] += th1f.Integral()
+			# write lines
+	for c in range(options.ncats):
+		for p in options.procs:
+			if '%s:%d'%(p,c) in options.toSkip: continue
+			if p in bkgProcs:
+				outFile.write('- ')
+				continue
+			else:
+				thisUncert = metSyst[p]
+			if c in muonCat or c in eleCat:
+				if c in muonCat: 
+					outFile.write('%6.4f '%(1.+thisUncert))
+				elif c in eleCat:
+					outFile.write('%6.4f '%((looseLepEvCount[p]-thisUncert*tightLepEvCount[p])/looseLepEvCount[p]))
+			else:
+				outFile.write('- ')
+	outFile.write('\n')
 
 
 # __main__ here

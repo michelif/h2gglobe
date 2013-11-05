@@ -1184,12 +1184,12 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 
 		//sync for excltag
 		int categoryFordumper=-1;
-		if(category<=3){
+		if(category==0){
 		    categoryFordumper=0;
-		}else if(category>3 && category<=6){
+		}else if(category>0 && category<=3){
 		    categoryFordumper=4;
 		}else{
-		    categoryFordumper=category;
+		    categoryFordumper=category+3;
 		}
 
             excl_sync 
@@ -1205,24 +1205,24 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
               << "\tpho2_eta:"                  <<  sublead_p4.Eta()
               << "\tpho2_phi:"                  <<  sublead_p4.Phi()
               << "\tmass:"                      <<  mass 		
-              << "\tcat:"                      <<  categoryFordumper
+              << "\tcat:"                       <<  categoryFordumper
 	      << "\tpho1_idMVA:"                <<  phoid_mvaout_lead
               << "\tpho2_idMVA:"                <<  phoid_mvaout_sublead
               << "\tdiphoMVA:"                  <<  diphobdt_output;
 
 
 	    int tth=0,vhLep=0,vhMet=0,vhHad=0;
-	    if(category==7){
+	    if(categoryFordumper==7){
 		vhLep=2;
-	    }else if(category==8){
+	    }else if(categoryFordumper==8){
 		vhLep=1;
-	    }else if(category==9){
+	    }else if(categoryFordumper==9){
 		vhMet=1;
-	    }else if(category==10){
+	    }else if(categoryFordumper==10){
 		tth=2;
-	    }else if(category==11){
+	    }else if(categoryFordumper==11){
 		tth=1;
-	    }else if(category==12){
+	    }else if(categoryFordumper==12){
 		vhHad=1;
 	    }
             excl_sync 

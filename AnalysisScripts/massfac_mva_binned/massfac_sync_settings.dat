@@ -19,6 +19,11 @@
 ##multiclassVbfCatBoundaries1=1,0.972,0.87,0.59
 #multiclassVbfCatBoundaries1=1.0,0.948,0.88,0.64
 #multiclassVbfCatBoundaries2=10.,-10.
+#multiclassVbfCatBoundaries0=1,0.615,0.615,0.59
+#combined BDT
+#multiclassVbfCatBoundaries1=1,0.972,0.87,0.59
+#multiclassVbfCatBoundaries2=10.,-10.
+
 
 
 #includeVBF=1
@@ -34,8 +39,9 @@
 #includeVHmet=1
 
 #bkgPolOrderByCat=5,5,5,5,5,3,4,4,3,3,3,-10,2,3
+bkgPolOrderByCat=5,4,4,4,3,3,3,-10,2,3
 phoidMvaCut=-10
-#bdtCategoryBoundaries=1,-1
+bdtCategoryBoundaries=1,-1
 doSystematics=0
 doEscaleSmear=0 
 doEresolSmear=0 

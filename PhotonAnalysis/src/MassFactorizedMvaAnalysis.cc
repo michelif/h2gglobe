@@ -1212,17 +1212,17 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 
 
 	    int tth=0,vhLep=0,vhMet=0,vhHad=0;
-	    if(category==6){
+	    if(category==nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories+VHmuevent_cat){
 		vhLep=2;
-	    }else if(category==7){
+	    }else if(category==nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories + nMuonCategories+VHelevent_cat){
 		vhLep=1;
-	    }else if(category==8){
+	    }else if(category==nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories +  nVHlepCategories+VHmetevent_cat){
 		vhMet=1;
-	    }else if(category==9){
+	    }else if(category==nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories +  nVHlepCategories +  nVHmetCategories){
 		tth=2;
-	    }else if(category==10){
+	    }else if(category==nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories +  nVHlepCategories + nVHmetCategories+nTTHlepCategories){
 		tth=1;
-	    }else if(category==11){
+	    }else if(category==nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories +  nVHlepCategories + nVHmetCategories + nTTHlepCategories + nTTHhadCategories+nVHhadBtagCategories){
 		vhHad=1;
 	    }
             eventListText 
@@ -1439,6 +1439,14 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 	    //MET
 	    TLorentzVector  myMet = l.METCorrection2012B(lead_p4, sublead_p4, moriond2013MetCorrection);
 	    eventListText<<"\tmet:"<<myMet.Pt();
+	    TLorentzVector unpfMET;
+	    unpfMET.SetPxPyPzE (l.met_pfmet*cos(l.met_phi_pfmet),l.met_pfmet*sin(l.met_phi_pfmet),0,
+				sqrt(l.met_pfmet*cos(l.met_phi_pfmet) * l.met_pfmet*cos(l.met_phi_pfmet) 
+				+ l.met_pfmet*sin(l.met_phi_pfmet) * l.met_pfmet*sin(l.met_phi_pfmet))); 
+	    
+	    eventListText<<"\tmet_phi:"<<myMet.Phi();
+	    eventListText<<"\tuncorrMet:"<<unpfMET.Pt();
+	    eventListText<<"\tuncorrMet_phi:"<<unpfMET.Phi();
 	    eventListText<<endl;
 	
 

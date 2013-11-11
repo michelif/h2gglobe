@@ -9,9 +9,10 @@ for line in card.readlines():
     els = els[1:]
     for i, el in enumerate(els):
       if i%6==6:
-        rate = 0.9935*float(el)
+        rate = 0.9886*float(el)
+        print rate
       elif i%6==7:
-        rate = 0.99*float(el)
+        rate = 0.9909*float(el)
       else:
         rate = float(el)
       print rate,

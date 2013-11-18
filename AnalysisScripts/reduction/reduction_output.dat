@@ -374,11 +374,11 @@ met_tcmet
 ##skimmed met_phi_tcmet
 
 ###### # Trigger
-hlt_bit
-hlt_n
-hlt_candpath
-hlt_path_names_HLT
-hlt_p4
+#hlt_bit
+#hlt_n
+#hlt_candpath
+#hlt_path_names_HLT
+#hlt_p4
 #### l1emiso_n
 #### l1emiso_et
 #### l1emiso_eta

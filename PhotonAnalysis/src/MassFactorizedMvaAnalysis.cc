@@ -1041,6 +1041,58 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 			<< "\tp2Conv:"                    <<  vtxAna_.pulltoconv(vtxlist[0])
 			<< "\tnConv:"                     <<  vtxAna_.nconv(vtxlist[0]);
 
+		    //shower shape variables
+		    cout<<"-----------shower shape variables---------"<<endl;
+		    cout<<"\tpho1_e2nd:"<<l.pho_e2nd[l.dipho_leadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_leadind[diphoton_id]]]];			
+		    cout<<"\tpho1_etop:"<<l.pho_etop[l.dipho_leadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_leadind[diphoton_id]]]];			
+		    cout<<"\tpho1_ebottom:"<<l.pho_ebottom[l.dipho_leadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_leadind[diphoton_id]]]];			
+		    cout<<"\tpho1_eleft:"<<l.pho_eleft[l.dipho_leadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_leadind[diphoton_id]]]];			
+		    cout<<"\tpho1_eright:"<<l.pho_eright[l.dipho_leadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_leadind[diphoton_id]]]];			
+		    cout<<"\tpho1_e2x5max:"<<(float)l.pho_e2x5max[l.dipho_leadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_leadind[diphoton_id]]]];
+		    cout<<"\tpho1_e2x5top:"<<l.pho_e2x5top[l.dipho_leadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_leadind[diphoton_id]]]];			
+		    cout<<"\tpho1_e2x5bottom:"<<l.pho_e2x5bottom[l.dipho_leadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_leadind[diphoton_id]]]];			
+		    cout<<"\tpho1_e2x5left:"<<l.pho_e2x5left[l.dipho_leadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_leadind[diphoton_id]]]];			
+		    cout<<"\tpho1_e2x5right:"<<l.pho_e2x5right[l.dipho_leadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_leadind[diphoton_id]]]];			
+
+		    int sc_index_pho1      = l.pho_scind[l.dipho_leadind[diphoton_id]];
+		    TVector3 *sc_pho1 = ((TVector3*)l.sc_xyz->At(sc_index_pho1));
+
+		    int sc_seed_index_pho1 = l.sc_bcseedind[sc_index_pho1];
+
+		    double be5x5_pho1 = l.bc_s25[sc_seed_index_pho1];
+		    double bcE_pho1 = ((TLorentzVector*)l.bc_p4->At(sc_seed_index_pho1))->Energy();
+		    cout<<"\tpho1_5x5:"<<be5x5_pho1/bcE_pho1;
+
+		    //		    TVector3 *bcpos_pho1 =(TVector3*)l.bc_xyz->At(sc_seed_index_pho1);
+		    //		    TVector3 *bcpos_pho1 =(TVector3*)l.bc_xyz->At(sc_seed_index_pho1);
+		    //		    cout<<"\tpho1_etase"<<bcpos_pho1->Eta()-sc_pho1->Eta();
+		    //		    cout<<"\tpho1_dphiseedpho"<<l.DeltaPhi(bcpos_pho1->Phi(),sc_pho1->Phi());
+
+		    cout<<"\tpho2_e2nd:"<<l.pho_e2nd[l.dipho_subleadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_subleadind[diphoton_id]]]];			
+		    cout<<"\tpho2_etop:"<<l.pho_etop[l.dipho_subleadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_subleadind[diphoton_id]]]];			
+		    cout<<"\tpho2_ebottom:"<<l.pho_ebottom[l.dipho_subleadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_subleadind[diphoton_id]]]];			
+		    cout<<"\tpho2_eleft:"<<l.pho_eleft[l.dipho_subleadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_subleadind[diphoton_id]]]];			
+		    cout<<"\tpho2_eright:"<<l.pho_eright[l.dipho_subleadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_subleadind[diphoton_id]]]];			
+		    cout<<"\tpho2_e2x5max:"<<(float)l.pho_e2x5max[l.dipho_subleadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_subleadind[diphoton_id]]]];
+		    cout<<"\tpho2_e2x5top:"<<l.pho_e2x5top[l.dipho_subleadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_subleadind[diphoton_id]]]];			
+		    cout<<"\tpho2_e2x5bottom:"<<l.pho_e2x5bottom[l.dipho_subleadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_subleadind[diphoton_id]]]];			
+		    cout<<"\tpho2_e2x5left:"<<l.pho_e2x5left[l.dipho_subleadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_subleadind[diphoton_id]]]];			
+		    cout<<"\tpho2_e2x5right:"<<l.pho_e2x5right[l.dipho_subleadind[diphoton_id]]/l.bc_s25[l.sc_bcseedind[l.pho_scind[l.dipho_subleadind[diphoton_id]]]];			
+
+		    int sc_index_pho2      = l.pho_scind[l.dipho_subleadind[diphoton_id]];
+		    TVector3 *sc_pho2 = ((TVector3*)l.sc_xyz->At(sc_index_pho2));
+
+		    int sc_seed_index_pho2 = l.sc_bcseedind[sc_index_pho2];
+
+		    double be5x5_pho2 = l.bc_s25[sc_seed_index_pho2];
+		    double bcE_pho2 = ((TLorentzVector*)l.bc_p4->At(sc_seed_index_pho2))->Energy();
+		    cout<<"\tpho2_5x5:"<<be5x5_pho2/bcE_pho2;
+
+		    /*		    TVector3 *bcpos_pho2 =(TVector3*)l.bc_xyz->At(sc_seed_index_pho2);
+		    cout<<"\tpho2_etase"<<bcpos_pho2->Eta()-sc_pho2->Eta();
+		    cout<<"\tpho2_dphiseedpho"<<l.DeltaPhi(bcpos_pho2->Phi(),sc_pho2->Phi());
+		    */
+
 		    cout<<endl;
 		}
 

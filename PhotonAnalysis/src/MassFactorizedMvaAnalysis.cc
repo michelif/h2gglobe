@@ -949,6 +949,100 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		        pfchargedisobad03_2=(*(l.pho_pfiso_mycharged03))[diphoton_index.second][ivtx]>pfchargedisobad03_2?
                     (*(l.pho_pfiso_mycharged03))[diphoton_index.second][ivtx]:pfchargedisobad03_2;
 	        }
+		if(l.run==194533 && l.lumis==15 && l.event==7343){
+		    cout << "\trun:"                       <<  l.run
+			 << "\tlumi:"                      <<  l.lumis
+			 << "\tevent:"                     <<  l.event
+			 << "\trho:"                       <<  l.rho
+			 << "\tpho1_ind:"                  <<  diphoton_index.first
+			 << "\tpho1_scInd:"                <<  l.pho_scind[diphoton_index.first]
+			 << "\tpho1_r9:"                   <<  lead_r9
+			 << "\tpho1_scEta:"                <<  (photonInfoCollection[diphoton_index.first]).caloPosition().Eta() 
+			 << "\tpho1_pt:"                   <<  lead_p4.Pt()
+			 << "\tpho1_eta:"                  <<  lead_p4.Eta()
+			 << "\tpho1_phi:"                  <<  lead_p4.Phi()
+			 << "\tpho1_e:"                    <<  lead_p4.E()
+			 << "\tpho1_eErr:"                 <<  massResolutionCalculator->leadPhotonResolutionNoSmear()
+			 << "\tpho1_isConv:"               <<  l.pho_isconv[diphoton_index.first]
+			 << "\tpho1_HoE:"                  <<  l.pho_hoe[diphoton_index.first]
+			 << "\tpho1_hcalIso03:"            <<  l.pho_hcalsumetconedr03[diphoton_index.first] - 0.005*lead_p4.Et() 
+			 << "\tpho1_trkIso03:"             <<  l.pho_trksumpthollowconedr03[diphoton_index.first] - 0.002*lead_p4.Et()
+			 << "\tpho1_pfChargedIsoGood02:"   <<  (*l.pho_pfiso_mycharged02)[diphoton_index.first][l.dipho_vtxind[diphoton_id]] 
+			 << "\tpho1_pfChargedIsoGood03:"   <<  (*l.pho_pfiso_mycharged03)[diphoton_index.first][l.dipho_vtxind[diphoton_id]] 
+			 << "\tpho1_pfChargedIsoBad03:"    <<  pfchargedisobad03_1
+			 << "\tpho1_pfPhotonIso03:"        <<  l.pho_pfiso_myphoton03[diphoton_index.first]
+			 << "\tpho1_sieie:"                <<  l.pho_sieie[diphoton_index.first]
+			 << "\tpho1_cieip:"                <<  l.pho_sieip[diphoton_index.first]
+			 << "\tpho1_etaWidth:"             <<  l.pho_etawidth[diphoton_index.first]
+			 << "\tpho1_phiWidth:"             <<  l.sc_sphi[diphoton_index.first]
+			 << "\tpho1_s4Ratio:"              <<  l.pho_s4ratio[diphoton_index.first]
+			 << "\tpho1_ESEffSigmaRR:"         <<  l.pho_ESEffSigmaRR[diphoton_index.first]
+			 << "\tpho1_scRawE:"               <<  l.sc_raw[l.pho_scind[diphoton_index.first]]
+			 << "\tpho1_idMVA:"                <<  phoid_mvaout_lead
+
+			 << "\tpho2_ind:"                  <<  diphoton_index.second
+			 << "\tpho2_scInd:"                <<  l.pho_scind[diphoton_index.second]
+			 << "\tpho2_r9:"                   <<  sublead_r9
+			 << "\tpho2_scEta:"                <<  (photonInfoCollection[diphoton_index.second]).caloPosition().Eta() 
+			 << "\tpho2_pt:"                   <<  sublead_p4.Pt()
+			 << "\tpho2_eta:"                  <<  sublead_p4.Eta()
+			 << "\tpho2_phi:"                  <<  sublead_p4.Phi()
+			 << "\tpho2_e:"                    <<  sublead_p4.E()
+			 << "\tpho2_eErr:"                 <<  massResolutionCalculator->subleadPhotonResolutionNoSmear()
+			 << "\tpho2_isConv:"               <<  l.pho_isconv[diphoton_index.second]
+			 << "\tpho2_HoE:"                  <<  l.pho_hoe[diphoton_index.second]
+			 << "\tpho2_hcalIso03:"            <<  l.pho_hcalsumetconedr03[diphoton_index.second] - 0.005*sublead_p4.Et() 
+			 << "\tpho2_trkIso03:"             <<  l.pho_trksumpthollowconedr03[diphoton_index.second] - 0.002*sublead_p4.Et()
+			 << "\tpho2_pfChargedIsoGood02:"   <<  (*l.pho_pfiso_mycharged02)[diphoton_index.second][l.dipho_vtxind[diphoton_id]] 
+			 << "\tpho2_pfChargedIsoGood03:"   <<  (*l.pho_pfiso_mycharged03)[diphoton_index.second][l.dipho_vtxind[diphoton_id]] 
+			 << "\tpho2_pfChargedIsoBad03:"    <<  pfchargedisobad03_2
+			 << "\tpho2_pfPhotonIso03:"        <<  l.pho_pfiso_myphoton03[diphoton_index.second]
+			 << "\tpho2_sieie:"                <<  l.pho_sieie[diphoton_index.second]
+			 << "\tpho2_cieip:"                <<  l.pho_sieip[diphoton_index.second]
+			 << "\tpho2_etaWidth:"             <<  l.pho_etawidth[diphoton_index.second]
+			 << "\tpho2_phiWidth:"             <<  l.sc_sphi[diphoton_index.second]
+			 << "\tpho2_s4Ratio:"              <<  l.pho_s4ratio[diphoton_index.second]
+			 << "\tpho2_ESEffSigmaRR:"         <<  l.pho_ESEffSigmaRR[diphoton_index.second]
+			 << "\tpho2_scRawE:"               <<  l.sc_raw[l.pho_scind[diphoton_index.second]]
+			 << "\tpho2_idMVA:"                <<  phoid_mvaout_sublead
+
+			 << "\tmass:"                      <<  mass 
+			 << "\trVtxSigmaMoM:"              <<  sigmaMrv/mass 
+			 << "\twVtxSigmaMoM:"              <<  sigmaMwv/mass 
+			 << "\tpho1_ptOverM:"              <<  lead_p4.Pt()/mass
+			 << "\tpho2_ptOverM:"              <<  sublead_p4.Pt()/mass
+			 << "\tvtxIndex:"                  <<  l.dipho_vtxind[diphoton_id]
+			 << "\tvtxProb:"                   <<  vtxProb 
+			 << "\tcosDPhi:"                   <<  TMath::Cos(lead_p4.Phi() - sublead_p4.Phi())
+			 << "\tdiphoMVA:"                  <<  diphobdt_output;
+
+		    // Vertex MVA
+		    vtxAna_.setPairID(diphoton_id);
+		    std::vector<int> & vtxlist = l.vtx_std_ranked_list->at(diphoton_id);
+		    // Conversions
+		    PhotonInfo p1 = l.fillPhotonInfos(l.dipho_leadind[diphoton_id], vtxAlgoParams.useAllConversions, 0); // WARNING using default photon energy: it's ok because we only re-do th$
+		    PhotonInfo p2 = l.fillPhotonInfos(l.dipho_subleadind[diphoton_id], vtxAlgoParams.useAllConversions, 0); // WARNING using default photon energy: it's ok because we only re-do$
+		    int convindex1 = l.matchPhotonToConversion(diphoton_index.first,vtxAlgoParams.useAllConversions);
+		    int convindex2 = l.matchPhotonToConversion(diphoton_index.second,vtxAlgoParams.useAllConversions);
+
+		    for(size_t ii=0; ii<3; ++ii ) {
+			cout << "\tvertexId"<< ii+1 <<":" << (ii < vtxlist.size() ? vtxlist[ii] : -1);
+		    }
+		    for(size_t ii=0; ii<3; ++ii ) {
+			cout << "\tvertexMva"<< ii+1 <<":" << (ii < vtxlist.size() ? vtxAna_.mva(vtxlist[ii]) : -2.);
+		    }
+		    for(size_t ii=1; ii<3; ++ii ) {
+			cout << "\tvertexdeltaz"<< ii+1 <<":" << (ii < vtxlist.size() ? vtxAna_.vertexz(vtxlist[ii])-vtxAna_.vertexz(vtxlist[0]) : -999.);
+		    }
+		    cout 
+			<< "\tptBal:"                     <<  vtxAna_.ptbal(vtxlist[0])
+			<< "\tptAsym:"                    <<  vtxAna_.ptasym(vtxlist[0])
+			<< "\tlogSPt2:"                   <<  vtxAna_.logsumpt2(vtxlist[0])
+			<< "\tp2Conv:"                    <<  vtxAna_.pulltoconv(vtxlist[0])
+			<< "\tnConv:"                     <<  vtxAna_.nconv(vtxlist[0]);
+
+		    cout<<endl;
+		}
 
 //            eventListText 
 //              << "\trun:"                       <<  l.run

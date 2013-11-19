@@ -949,7 +949,8 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		        pfchargedisobad03_2=(*(l.pho_pfiso_mycharged03))[diphoton_index.second][ivtx]>pfchargedisobad03_2?
                     (*(l.pho_pfiso_mycharged03))[diphoton_index.second][ivtx]:pfchargedisobad03_2;
 	        }
-		if(l.run==194533 && l.lumis==15 && l.event==7343){
+		//		if(l.run==194533 && l.lumis==15 && l.event==7343){
+		if(l.run==200519 && l.lumis==137 && (l.event==68683 || l.event ==68687 || l.event ==68689 || l.event==68690)){
 		    cout << "\trun:"                       <<  l.run
 			 << "\tlumi:"                      <<  l.lumis
 			 << "\tevent:"                     <<  l.event
@@ -1092,7 +1093,8 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		    cout<<"\tpho2_etase"<<bcpos_pho2->Eta()-sc_pho2->Eta();
 		    cout<<"\tpho2_dphiseedpho"<<l.DeltaPhi(bcpos_pho2->Phi(),sc_pho2->Phi());
 		    */
-
+		    cout<<"\tVBF_MVA"<<(useGbrVbfMva ? gbrVbfReader_->eval()      : tmvaVbfReader_->EvaluateMVA(mvaVbfMethod)           )
+			<<"\tVBFcombined"<<(useGbrVbfMva ? gbrVbfDiphoReader_->eval() : tmvaVbfDiphoReader_->EvaluateMVA(mvaVbfDiphoMethod) );
 		    cout<<endl;
 		}
 

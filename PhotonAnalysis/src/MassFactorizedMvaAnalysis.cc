@@ -1379,86 +1379,6 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		<< "\ttth:"                      <<  tth
 		<< "\tvhHad:"                      <<  vhHad;
 
-	    //////////jet selection
-	    int njets=0,njets_btagmedium=0;
-	    std::pair<int, int> myJets(-1,-1);
-	    std::pair<float, float> myJetspt(-1.,-1.);
-	    TLorentzVector* j1p4;
-	    float j1pt=-1;
-	    
-	    static std::vector<unsigned char> id_flags;
-	    bool *jetid_flags=0;
-	    if( jetid_flags == 0 ) {
-		switchJetIdVertex( l, l.dipho_vtxind[diphoton_id] );
-		id_flags.resize(l.jet_algoPF1_n);
-		for(int ijet=0; ijet<l.jet_algoPF1_n; ++ijet ) {
-		    id_flags[ijet] = PileupJetIdentifier::passJetId(l.jet_algoPF1_cutbased_wp_level[ijet], PileupJetIdentifier::kLoose);
-		}
-		jetid_flags = (bool*)&id_flags[0];
-	    }
-  
-	    for(int ii=0; ii<l.jet_algoPF1_n; ++ii) {
-		TLorentzVector * j1p4 = (TLorentzVector *) l.jet_algoPF1_p4->At(ii);
-		if(jetid_flags != 0 && !jetid_flags[ii]) continue; 
-		if(fabs(j1p4->Eta()) > 4.7) continue;
-		
-		bool isJet_LeadPho = false;
-		bool isJet_SubLeadPho = false;
-		
-		double dR_jet_PhoLead = j1p4->DeltaR(lead_p4);
-		if( dR_jet_PhoLead<0.5 ) isJet_LeadPho = true;
-		
-		double dR_jet_PhoSubLead = j1p4->DeltaR(sublead_p4);
-		if( dR_jet_PhoSubLead<0.5 ) isJet_SubLeadPho = true;
-		
-		if( isJet_LeadPho || isJet_SubLeadPho ) continue;
-		j1pt=j1p4->Pt();
-		if(j1pt<20.) continue;
-		njets++;
-		if(l.jet_algoPF1_csvBtag[ii]>0.679)njets_btagmedium++;
-
-		if(j1pt>myJetspt.first) {
-		    myJets.second=myJets.first;
-		    myJetspt.second=myJetspt.first;
-		    myJetspt.first=j1pt;
-		    myJets.first=ii;
-		}
-		else if(j1pt>myJetspt.second) {
-		    myJetspt.second=j1pt;
-		    myJets.second=ii;
-		}
-	    }
-	    
-	    if(myJets.first>-1){
-		TLorentzVector * j1p4 = (TLorentzVector *) l.jet_algoPF1_p4->At(myJets.first);
-		eventListText
-		    << "\tjet1_pt:"                      <<  j1p4->Pt()
-		    << "\tjet1_eta:"                      <<  j1p4->Eta()
-		    << "\tjet1_phi:"                      <<  j1p4->Phi();
-		if(myJets.second>-1){
-		TLorentzVector * j2p4 = (TLorentzVector *) l.jet_algoPF1_p4->At(myJets.second);
-		eventListText
-		    << "\tjet2_pt:"                      <<  j2p4->Pt()
-		    << "\tjet2_eta:"                      <<  j2p4->Eta()
-		    << "\tjet2_phi:"                      <<  j2p4->Phi();
-		}else{
-		eventListText
-		    << "\tjet2_pt:"                      <<  -999
-		    << "\tjet2_eta:"                      << -999
-		    << "\tjet2_phi:"                      << -999;
-		}
-	    }else{
-		eventListText
-		    << "\tjet1_pt:"                      <<  -999
-		    << "\tjet1_eta:"                      << -999
-		    << "\tjet1_phi:"                      << -999
-		    << "\tjet2_pt:"                      <<  -999
-		    << "\tjet2_eta:"                      << -999
-		    << "\tjet2_phi:"                      << -999;
-	    }
-	    eventListText
-		<<"\tnumJets:"<<njets
-		<<"\tnumBJets:"<<njets_btagmedium;
 	    ////////lepton selection
 	    //muons
 	    int mu_ind_1 = l.MuonSelection2012B(10);
@@ -1481,15 +1401,17 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		if(bestpt<(thismu->Pt())) {
 		    bestpt=thismu->Pt();
 		    mu_ind_2 = indmu;
+		    passMu2PhoCuts=true;
 		}
 	    }
 	    TLorentzVector* mymu_2;
-	    if(mu_ind_2!=-1 && passMu2PhoCuts){
+	    if(mu_ind_2!=-1 ){
 		mymu_2 = (TLorentzVector*) l.mu_glo_p4->At(mu_ind_2);
 		if(mymu_2->DeltaR(lead_p4)>0.5 && mymu_2->DeltaR(sublead_p4)>0.5 && (*mymu_1+*mymu_2).M()<110 && (*mymu_1+*mymu_2).M()>70)passMu2PhoCuts=true;
 	    }
 
-	    if(mu_ind_1!=-1 && passMuPhoCuts) {
+	    //	    if(mu_ind_1!=-1 && passMuPhoCuts) {
+	    if(mu_ind_1!=-1 ) {
 		eventListText
 		    << "\tmu1_pt:"                      <<  mymu_1->Pt()
 		    << "\tmu1_eta:"                      <<  mymu_1->Eta()
@@ -1501,7 +1423,8 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		    << "\tmu1_eta:"                      << -999
 		    << "\tmu1_phi:"                      << -999;
 	    }
-	    if(mu_ind_2!=-1 && passMu2PhoCuts) {
+	    //	    if(mu_ind_2!=-1 && passMu2PhoCuts) {
+	    if(mu_ind_2!=-1 ) {
 		eventListText
 		    << "\tmu2_pt:"                      <<  mymu_2->Pt()
 		    << "\tmu2_eta:"                      <<  mymu_2->Eta()
@@ -1560,7 +1483,8 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 
 
 
-	    if(el_ind_1!=-1 && passElePhotonCuts) {
+	    //	    if(el_ind_1!=-1 && passElePhotonCuts) {
+	    if(el_ind_1!=-1 ) {
 		eventListText
 		    << "\tele1_pt:"                      <<  myel_1->Pt()
 		    << "\tele1_eta:"                      <<  myel_1->Eta()
@@ -1572,7 +1496,8 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		    << "\tele1_eta:"                      << -999
 		    << "\tele1_phi:"                      << -999;
 	    }
-	    if(el_ind_2!=-1 && passEle2PhotonCuts) {
+	    //	    if(el_ind_2!=-1 && passEle2PhotonCuts) {
+	    if(el_ind_2!=-1) {
 		eventListText
 		    << "\tele2_pt:"                      <<  myel_2->Pt()
 		    << "\tele2_eta:"                      <<  myel_2->Eta()
@@ -1584,6 +1509,109 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		    << "\tele2_phi:"                      << -999;
 	    }
 
+
+
+	    //////////jet selection
+	    int njets=0,njets_btagmedium=0;
+	    std::pair<int, int> myJets(-1,-1);
+	    std::pair<float, float> myJetspt(-1.,-1.);
+	    TLorentzVector* j1p4;
+	    float j1pt=-1;
+	    
+	    static std::vector<unsigned char> id_flags;
+	    bool *jetid_flags=0;
+	    if( jetid_flags == 0 ) {
+		switchJetIdVertex( l, l.dipho_vtxind[diphoton_id] );
+		id_flags.resize(l.jet_algoPF1_n);
+		for(int ijet=0; ijet<l.jet_algoPF1_n; ++ijet ) {
+		    id_flags[ijet] = PileupJetIdentifier::passJetId(l.jet_algoPF1_cutbased_wp_level[ijet], PileupJetIdentifier::kLoose);
+		}
+		jetid_flags = (bool*)&id_flags[0];
+	    }
+  
+	    for(int ii=0; ii<l.jet_algoPF1_n; ++ii) {
+		TLorentzVector * j1p4 = (TLorentzVector *) l.jet_algoPF1_p4->At(ii);
+		if(jetid_flags != 0 && !jetid_flags[ii]) continue; 
+		if(fabs(j1p4->Eta()) > 4.7) continue;
+		
+		bool isJet_LeadPho = false;
+		bool isJet_SubLeadPho = false;
+		bool isJet_Lep=false;
+		
+		double dR_jet_PhoLead = j1p4->DeltaR(lead_p4);
+		if( dR_jet_PhoLead<0.5 ) isJet_LeadPho = true;
+		
+		double dR_jet_PhoSubLead = j1p4->DeltaR(sublead_p4);
+		if( dR_jet_PhoSubLead<0.5 ) isJet_SubLeadPho = true;
+
+
+		if(mu_ind_1>-1){
+		    double dr_jet_lep= j1p4->DeltaR(*mymu_1);
+		    if(dr_jet_lep<0.5) isJet_Lep = true;
+		}
+		if(mu_ind_2>-1){
+		    double dr_jet_lep= j1p4->DeltaR(*mymu_2);
+		    if(dr_jet_lep<0.5) isJet_Lep = true;
+		}
+
+		if(el_ind_1>-1){
+		    double dr_jet_lep= j1p4->DeltaR(*myel_1);
+		    if(dr_jet_lep<0.5) isJet_Lep = true;
+		}
+		if(el_ind_2>-1){
+		    double dr_jet_lep= j1p4->DeltaR(*myel_2);
+		    if(dr_jet_lep<0.5) isJet_Lep = true;
+		}
+		
+		if( isJet_LeadPho || isJet_SubLeadPho || isJet_Lep ) continue;
+		j1pt=j1p4->Pt();
+		if(j1pt<20.) continue;
+		njets++;
+		if(l.jet_algoPF1_csvBtag[ii]>0.679)njets_btagmedium++;
+
+		if(j1pt>myJetspt.first) {
+		    myJets.second=myJets.first;
+		    myJetspt.second=myJetspt.first;
+		    myJetspt.first=j1pt;
+		    myJets.first=ii;
+		}
+		else if(j1pt>myJetspt.second) {
+		    myJetspt.second=j1pt;
+		    myJets.second=ii;
+		}
+	    }
+	    
+	    if(myJets.first>-1){
+		TLorentzVector * j1p4 = (TLorentzVector *) l.jet_algoPF1_p4->At(myJets.first);
+		eventListText
+		    << "\tjet1_pt:"                      <<  j1p4->Pt()
+		    << "\tjet1_eta:"                      <<  j1p4->Eta()
+		    << "\tjet1_phi:"                      <<  j1p4->Phi();
+		if(myJets.second>-1){
+		TLorentzVector * j2p4 = (TLorentzVector *) l.jet_algoPF1_p4->At(myJets.second);
+		eventListText
+		    << "\tjet2_pt:"                      <<  j2p4->Pt()
+		    << "\tjet2_eta:"                      <<  j2p4->Eta()
+		    << "\tjet2_phi:"                      <<  j2p4->Phi();
+		}else{
+		eventListText
+		    << "\tjet2_pt:"                      <<  -999
+		    << "\tjet2_eta:"                      << -999
+		    << "\tjet2_phi:"                      << -999;
+		}
+	    }else{
+		eventListText
+		    << "\tjet1_pt:"                      <<  -999
+		    << "\tjet1_eta:"                      << -999
+		    << "\tjet1_phi:"                      << -999
+		    << "\tjet2_pt:"                      <<  -999
+		    << "\tjet2_eta:"                      << -999
+		    << "\tjet2_phi:"                      << -999;
+	    }
+	    eventListText
+		<<"\tnumJets:"<<njets
+		<<"\tnumBJets:"<<njets_btagmedium;
+	    
 	    //MET
 	    TLorentzVector  myMet = l.METCorrection2012B(lead_p4, sublead_p4, moriond2013MetCorrection);
 	    eventListText<<"\tmet:"<<myMet.Pt();

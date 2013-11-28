@@ -1,4 +1,4 @@
-intL=19715. histfile=/store/group/phys_higgs/cmshgg/analyzed/amarini_legacy/%(label)s/CMS-HGG.root output=eventsList.txt
+intL=19715. histfile=/store/group/phys_higgs/cmshgg/analyzed/micheli_legacy/%(label)s/CMS-HGG.root output=eventsList.txt
 #intL=19715. histfile=/store/user/amarini/CMS-HGG/%(label)s/CMS-HGG.root output=eventsList.txt
 
 #

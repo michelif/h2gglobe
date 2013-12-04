@@ -424,7 +424,7 @@ float PhotonAnalysis::getPuWeight(int n_pu, int sample_type, SampleContainer* co
                 lumiReWeight=puLumis[index];  //are normalized: sum to one
                 lumiReWeight/=rd_nevents[sample_type][index];
                 }
-        std::cout<< " LUMI ReWeight="<<lumiReWeight<<endl;
+            //        std::cout<< " LUMI ReWeight="<<lumiReWeight<<endl;
 	    if (n_pu < puweights.size()) {
 		return puweights[n_pu] * lumiReWeight;
 	    }

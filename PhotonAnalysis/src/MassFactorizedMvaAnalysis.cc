@@ -1020,14 +1020,28 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		    << "\trun:"                       <<  l.run
 		    << "\tlumi:"                      <<  l.lumis
 		    << "\tevent:"                     <<  l.event
+		    << "\trho_algo1:"                   <<  l.rho_algo1
+		    << "\tnvtx:"                       <<  l.vtx_std_n
 		    << "\tpho1_e:"                    <<  lead_p4.E()
 		    << "\tpho1_eErr:"                 <<  massResolutionCalculator->leadPhotonResolutionNoSmear()
 		    << "\tpho1_eta:"                  <<  lead_p4.Eta()
 		    << "\tpho1_phi:"                  <<  lead_p4.Phi()
+		    << "\tpho1_sc_raw:"               <<  l.sc_raw[l.pho_scind[l.dipho_leadind[diphoton_id]]]
+		    << "\tpho1_sc_seta:"              <<  l.sc_seta[l.pho_scind[l.dipho_leadind[diphoton_id]]]
+		    << "\tpho1_sc_sphi:"              <<  l.sc_sphi[l.pho_scind[l.dipho_leadind[diphoton_id]]]
+		    << "\tpho1_sc_nbc:"               <<  (double)l.sc_nbc[l.pho_scind[l.dipho_leadind[diphoton_id]]]
+		    << "\tpho1_pho_hoe_bc:"           <<  (double)l.pho_hoe_bc[l.dipho_leadind[diphoton_id]]
+		    << "\tpho1_r9:"                   <<  lead_r9
 		    << "\tpho2_e:"                    <<  sublead_p4.E()
 		    << "\tpho2_eErr:"                 <<  massResolutionCalculator->subleadPhotonResolutionNoSmear()
 		    << "\tpho2_eta:"                  <<  sublead_p4.Eta()
 		    << "\tpho2_phi:"                  <<  sublead_p4.Phi()
+		    << "\tpho2_sc_raw:"               <<  l.sc_raw[l.pho_scind[l.dipho_subleadind[diphoton_id]]]
+		    << "\tpho2_sc_seta:"              <<  l.sc_seta[l.pho_scind[l.dipho_subleadind[diphoton_id]]]
+		    << "\tpho2_sc_sphi:"              <<  l.sc_sphi[l.pho_scind[l.dipho_subleadind[diphoton_id]]]
+		    << "\tpho2_sc_nbc:"               <<  (double)l.sc_nbc[l.pho_scind[l.dipho_subleadind[diphoton_id]]]
+		    << "\tpho2_pho_hoe_bc:"           <<  (double)l.pho_hoe_bc[l.dipho_subleadind[diphoton_id]]
+		    << "\tpho2_r9:"                   <<  sublead_r9
 		    << "\tmass:"                      <<  mass 		
 		    << "\tcat:"                       <<  category
 		    << "\tpho1_idMVA:"                <<  phoid_mvaout_lead
@@ -1311,6 +1325,8 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		    if(myBJets.first>-1){
 			eventListText
 			    << "\tbjet_csv:"                      <<  l.jet_algoPF1_csvBtag[myBJets.first];
+		    }else{
+			eventListText<< "\tbjet_csv:"                      <<  -999;
 		    }
 		}else{
 		    eventListText

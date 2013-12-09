@@ -10,6 +10,10 @@ mu_glo_p4
 #mu_glo_charge
 #el_std_charge
 
+#for synch
+sc_nbc
+sc_seta
+pho_hoe_bc
 
 ## 
 ## MC truth for some tests

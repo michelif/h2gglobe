@@ -1,8 +1,22 @@
 #!/bin/env python
 
 import sys
+from optparse import OptionParser
 
-iname=sys.argv[1]
+usage = "usage: %prog [options] fileName"
+parser = OptionParser(usage=usage)
+parser.add_option('-o','--output',dest='output',type='string',default='stdout',help=' output file')
+(options,args)=parser.parse_args()
+
+if len(args) <= 0:
+        parser.error("incorrect number of arguments")
+outputfile=options.output
+if 'stdout' in outputfile:
+	outputfile="/dev/stdout"
+out=open(outputfile,"w")	
+
+#iname=sys.argv[1]
+iname=args[0]
 
 r9map = { "gold" : ("Gold",(0.94,999)),
           "bad"  : ("Bad",(-999,0.94)),

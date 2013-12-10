@@ -69,7 +69,16 @@ std::string EnergySmearer::photonCategory(const energySmearingParameters & myPar
 			);
 	    if( vit ==  myParameters.photon_categories.end() ) {
 		    std::cerr << "Could not find energy categoty for this photon " << 
-		      aPho.isSphericalPhoton() << " " << (float)aPho.caloPosition().PseudoRapidity() << " " <<  (float)aPho.r9() << std::endl;
+		      aPho.isSphericalPhoton() << " eta " << (float)aPho.caloPosition().PseudoRapidity() << " r9 " <<  (float)aPho.r9() << " E: " << aPho.energy() <<std::endl;
+			//DELETE ME
+		    std::cerr << "Et "<<aPho.energy()/cosh(fabs((float)aPho.caloPosition().PseudoRapidity())) << std::endl; 
+				    for (EnergySmearer::energySmearingParameters::phoCatVectorConstIt vit =  myParameters.photon_categories.begin();
+					     vit != myParameters.photon_categories.end(); vit++)
+					{
+					cerr<<" Et ["<< vit->minet << ","<<vit->maxet <<"] eta ["<<vit->mineta<<","<<vit->maxeta<<"] r9 ["<< vit->minr9<<","<<vit->maxr9<<"] typ="<<vit->type <<" name "<<vit->name <<endl;
+					}
+				if(vit ==myParameters.photon_categories.end() ) cerr<<""<<endl;
+			//END
 		    assert( 0 );
 	    }
 	    myCategory = vit->name;
@@ -225,6 +234,8 @@ bool EnergySmearer::smearPhoton(PhotonReducedInfo & aPho, float & weight, int ru
 	    float scale_offset   = getScaleOffset(run, category);
 
 	    scale_offset   += syst_shift * myParameters_.scale_offset_error.find(category)->second;
+	    cerr<<"Scale Offset = "<<scale_offset<<" r9: "<<aPho.r9()<<" eta "<< aPho.caloPosition().Eta()<<" E "<<aPho.energy()<<" newE "<<newEnergy<<endl;
+	    cerr<< "syst shift "<<syst_shift<<" scale&off "<<myParameters_.scale_offset_error.find(category)->second<<endl;
 	    newEnergy *=  scale_offset;
 	    if( syst_shift == 0. ) {
 		    aPho.cacheVal( smearerId(), this, scale_offset );
@@ -251,6 +262,8 @@ bool EnergySmearer::smearPhoton(PhotonReducedInfo & aPho, float & weight, int ru
     }
     if( newEnergy == 0. ) {
 	std::cerr << "New energy is 0.: aborting " << this->name() << std::endl;
+	    double t=TMath::Exp(-aPho.caloPosition().Eta());
+	    cerr<<"Gamma: r9: "<<aPho.r9()<<" eta "<< aPho.caloPosition().Eta()<<" E "<<aPho.energy()<<" et "<<aPho.energy()* 2 *t / (1+t*t) <<" newE "<<newEnergy<< " category "<<category<<endl;
 	assert( newEnergy != 0. );
     }
     aPho.setEnergy(newEnergy);

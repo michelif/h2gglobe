@@ -1028,11 +1028,21 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		    << "\tpho1_eErr:"                 <<  massResolutionCalculator->leadPhotonResolutionNoSmear()
 		    << "\tpho1_eta:"                  <<  lead_p4.Eta()
 		    << "\tpho1_phi:"                  <<  lead_p4.Phi()
+		    << "\tpho1_sc_raw:"               << l.sc_raw[l.pho_scind[l.dipho_leadind[diphoton_id]]]
+		    << "\tpho1_sc_seta:"              << l.sc_seta[l.pho_scind[l.dipho_leadind[diphoton_id]]]
+		    << "\tpho1_sc_sphi:"              << l.sc_sphi[l.pho_scind[l.dipho_leadind[diphoton_id]]]
+		    << "\tpho1_sc_nbc:"               << (double)l.sc_nbc[l.pho_scind[l.dipho_leadind[diphoton_id]]]
+		    << "\tpho1_pho_hoe_bc:"           << (double)l.pho_hoe_bc[l.dipho_leadind[diphoton_id]]
 		    << "\tpho1_r9:"                   <<  lead_r9
 		    << "\tpho2_e:"                    <<  sublead_p4.E()
 		    << "\tpho2_eErr:"                 <<  massResolutionCalculator->subleadPhotonResolutionNoSmear()
 		    << "\tpho2_eta:"                  <<  sublead_p4.Eta()
 		    << "\tpho2_phi:"                  <<  sublead_p4.Phi()
+		    << "\tpho2_sc_raw:"               << l.sc_raw[l.pho_scind[l.dipho_subleadind[diphoton_id]]]
+		    << "\tpho2_sc_seta:"              << l.sc_seta[l.pho_scind[l.dipho_subleadind[diphoton_id]]]
+		    << "\tpho2_sc_sphi:"              << l.sc_sphi[l.pho_scind[l.dipho_subleadind[diphoton_id]]]
+		    << "\tpho2_sc_nbc:"               << (double)l.sc_nbc[l.pho_scind[l.dipho_subleadind[diphoton_id]]]
+		    << "\tpho2_pho_hoe_bc:"           << (double)l.pho_hoe_bc[l.dipho_subleadind[diphoton_id]]
 		    << "\tpho2_r9:"                   <<  sublead_r9
 		    << "\tmass:"                      <<  mass 		
 		    << "\tcat:"                       <<  category
@@ -1040,6 +1050,48 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
 		    << "\tpho2_idMVA:"                <<  phoid_mvaout_sublead
 		    << "\tdiphoMVA:"                  <<  diphobdt_output;
 
+		//seed basic cluster variables
+		/*		int sc_index1=l.pho_scind[l.dipho_leadind[diphoton_id]];
+		int sc_seed_index1 = l.sc_bcseedind[sc_index1];
+		TVector3 *bcpos1 =(TVector3*)l.bc_p4->At(sc_seed_index1);
+		TVector3 *sc1 = ((TVector3*)l.sc_p4->At(sc_index1)); 
+		double bcE1 = ((TLorentzVector*)l.bc_p4->At(sc_seed_index1))->Energy();
+    
+		double bemax1 = l.bc_s1[sc_index1];//clustertools.eMax(*b);
+		double be2nd1 = l.pho_e2nd[l.dipho_leadind[diphoton_id]];//clustertools.e2nd(*b);
+		double betop1 = l.pho_etop[l.dipho_leadind[diphoton_id]];//clustertools.eTop(*b);
+		double bebottom1 = l.pho_ebottom[l.dipho_leadind[diphoton_id]];//clustertools.eBottom(*b);
+		double beleft1 = l.pho_eleft[l.dipho_leadind[diphoton_id]];//clustertools.eLeft(*b);
+		double beright1 = l.pho_eright[l.dipho_leadind[diphoton_id]];//clustertools.eRight(*b);
+		
+		double be2x5max1 = l.pho_e2x5max[l.dipho_leadind[diphoton_id]];//clustertools.e2x5Max(*b);
+		double be2x5top1 = l.pho_e2x5top[l.dipho_leadind[diphoton_id]];//clustertools.e2x5Top(*b);
+		double be2x5bottom1 = l.pho_e2x5bottom[l.dipho_leadind[diphoton_id]];//clustertools.e2x5Bottom(*b);
+		double be2x5left1 = l.pho_e2x5left[l.dipho_leadind[diphoton_id]];//clustertools.e2x5Left(*b);
+		double be2x5right1 = l.pho_e2x5right[l.dipho_leadind[diphoton_id]];//clustertools.e2x5Right(*b);
+		
+		double be5x51 = l.bc_s25[sc_index1];//clustertools.e5x5(*b);
+		double be3x31 = l.bc_s9[sc_index1];//clustertools.e5x5(*b);
+
+		eventListText<<"\tdeltaEta_pho1:"                       <<bcpos1->Eta()-sc1->Eta()
+			     <<"\tdeltaPhi_pho1:"<<l.DeltaPhi(bcpos1->Phi(),sc1->Phi())
+			     <<"\tbcE_pho1:"<<bcE1/l.sc_raw[sc_index1]
+			     <<"\tE3x3OverE5x5_pho1:"<<be3x31/be5x51
+			     <<"\t_sigietaieta_pho1:"<<l.bc_sieie[sc_seed_index1] //sigietaieta (this is stored in bc collection)
+			     <<"\t_sigiphiiphi_pho1:"<<TMath::Sqrt(l.pho_sipip[l.dipho_leadind[diphoton_id]]) //sigiphiiphi
+			     <<"\t_sigietaiphi_pho1:"<<l.pho_sieip[l.dipho_leadind[diphoton_id]]//clustertools.localCovariances(*b)[1]       //sigietaiphi
+			     <<"\t_bemax_pho1:"<<bemax1/be5x51                       //crystal energy ratio gap variables   
+			     <<"\t_be2nd_pho1:"<<be2nd1/be5x51
+			     <<"\t_betop_pho1:"<<betop1/be5x51
+			     <<"\t_bebottom_pho1:"<<bebottom1/be5x51
+			     <<"\t_beleft_pho1:"<<beleft1/be5x51
+			     <<"\t_beright_pho1:"<<beright1/be5x51
+			     <<"\t_bemax_pho1:"<<be2x5max1/be5x51                       //crystal energy ratio gap variables   
+			     <<"\t_betop_pho1:"<<be2x5top1/be5x51
+			     <<"\t_bebottom_pho1:"<<be2x5bottom1/be5x51
+			     <<"\t_beleft_pho1:"<<be2x5left1/be5x51
+			     <<"\t_beright_pho1:"<<be2x5right1/be5x51;
+		*/
 
 		int tth=0,vhLep=0,vhMet=0,vhHad=0;
 		if(category==nInclusiveCategories_ + ( (int)includeVBF )*nVBFCategories+VHmuevent_cat){

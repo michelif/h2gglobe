@@ -4,6 +4,34 @@
 jet_algoPF1_csvBtag
 el_std_p4
 mu_glo_p4
+
+#for synch
+sc_nbc
+sc_seta
+pho_hoe_bc
+pho_scind
+sc_bcseedind
+#bc_xyz
+#sc_xyz
+bc_p4
+sc_p4
+#bc_s1
+pho_e2nd
+pho_etop
+pho_ebottom
+pho_eleft
+pho_eright
+pho_e2x5max
+pho_e2x5top
+pho_e2x5bottom
+pho_e2x5left
+pho_e2x5right
+bc_s25
+#bc_s9
+#bc_sieie
+pho_sipip
+pho_sieip
+
 #not used, but useful for test
 #gsf_tk_n
 #gsf_tk_p4

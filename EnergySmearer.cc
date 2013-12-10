@@ -234,8 +234,8 @@ bool EnergySmearer::smearPhoton(PhotonReducedInfo & aPho, float & weight, int ru
 	    float scale_offset   = getScaleOffset(run, category);
 
 	    scale_offset   += syst_shift * myParameters_.scale_offset_error.find(category)->second;
-	    cerr<<"Scale Offset = "<<scale_offset<<" r9: "<<aPho.r9()<<" eta "<< aPho.caloPosition().Eta()<<" E "<<aPho.energy()<<" newE "<<newEnergy<<endl;
-	    cerr<< "syst shift "<<syst_shift<<" scale&off "<<myParameters_.scale_offset_error.find(category)->second<<endl;
+	    //	    cerr<<"Scale Offset = "<<scale_offset<<" r9: "<<aPho.r9()<<" eta "<< aPho.caloPosition().Eta()<<" E "<<aPho.energy()<<" newE "<<newEnergy<<endl;
+	    //	    cerr<< "syst shift "<<syst_shift<<" scale&off "<<myParameters_.scale_offset_error.find(category)->second<<endl;
 	    newEnergy *=  scale_offset;
 	    if( syst_shift == 0. ) {
 		    aPho.cacheVal( smearerId(), this, scale_offset );

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import ROOT
+ROOT.gROOT.SetBatch()
 from sys import argv
 from python.configProducer import *
 from python.lumi import *

@@ -203,6 +203,10 @@ else:
 #syst for tth tags
 tthSysts={}
 tthSysts['CMS_hgg_eff_b']=[0.02,0.01]#[gghEffect, tthEffect] the only two relevant for tth category
+tthHadSyst={}
+tthHadSyst['tthhad_MC_lowstat']=[0.25]
+tthHadSyst['tthhad_gluonsplit']=[0.13]
+tthHadSyst['tthhad_partonshower']=[0.30]
 tthLepRateScale = 0.980
 tthHadRateScale = 0.995
 
@@ -668,6 +672,24 @@ def printTTHSysts():
 					outFile.write('- ')
 		outFile.write('\n')
 
+def printAdditionalTTHhadSyst():
+	print 'TTH had...'
+	for tthHadSystName, tthHadSystVals in tthHadSyst.items():
+		outFile.write('%-25s   lnN   '%tthHadSystName)
+
+		for c in range(options.ncats):
+			for p in options.procs:
+				if '%s:%d'%(p,c) in options.toSkip: continue
+				if c in tthCats and c not in tthLepCat:
+					thisUncert = tthHadSystVals[0]
+					if p == 'ggH':
+						outFile.write('%6.4f '%(1.+ thisUncert))
+					else:
+						outFile.write('- ')
+				else:
+					outFile.write('- ')
+		outFile.write('\n')
+				
 def printMultiPdf():
 	if options.isMultiPdf:
 		for c in range(options.ncats):
@@ -685,4 +707,5 @@ printVbfSysts()
 printLepSysts()
 printMetSysts()
 printTTHSysts()
+printAdditionalTTHhadSyst()
 printMultiPdf()
